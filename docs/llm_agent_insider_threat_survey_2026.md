@@ -6,7 +6,11 @@
 
 ## 1 研究结论
 
-如果目标是从员工日志中识别内部威胁，优先读 WWW 2026 的 Insight-LLM 和 ICASSP 2026 的 LLMBA。两篇都用 CERT 评估检测器。如果目标是构建训练或评测数据，NDSS 2026 的 Chimera 提供组织级模拟和跨数据集实验。三篇分别说明怎样融合日志、怎样学习用户行为，以及换一家组织后检测性能会怎样变化。 [Insight-LLM 论文](https://doi.org/10.1145/3774904.3792398) · [ICASSP 论文](https://doi.org/10.1109/ICASSP55912.2026.11463924) · [NDSS 正式论文](https://www.ndss-symposium.org/ndss-paper/chimera-harnessing-multi-agent-llms-for-automatic-insider-threat-simulation/)
+从文献角度，WWW 2026 的 Insight-LLM 和 ICASSP 2026 的 LLMBA 仍是理解员工日志大模型检测的重要工作。两篇都用 CERT 评估检测器。如果目标是构建训练或评测数据，NDSS 2026 的 Chimera 提供组织级模拟和跨数据集实验。由于前两篇没有可核验的官方检测代码，Morpheus 的可复现实验改用 MOLE 的开源监测器。 [Insight-LLM 论文](https://doi.org/10.1145/3774904.3792398) · [ICASSP 论文](https://doi.org/10.1109/ICASSP55912.2026.11463924) · [NDSS 正式论文](https://www.ndss-symposium.org/ndss-paper/chimera-harnessing-multi-agent-llms-for-automatic-insider-threat-simulation/)
+
+### 主实验的开源性更新
+
+Insight-LLM 和 MARS-ITD 的论文入口可以核验，但截至 2026-11-23 没有找到可核验的官方检测代码。Morpheus 主实验因此改用开源的 MOLE 仓库。MOLE 提供 Apache-2.0 代码、账号日审计事件、标签、LLM 语义监测器、递归式 Agent 监测器和预算式级联监测器。实验固定使用 MOLE-Cascade 与 MOLE-RLM，并将 CERT user-day 和 Morpheus employee-day 转换为统一的账号日事件接口。 [MOLE 代码](https://github.com/aashiqmuhamed/mole) · [MOLE 论文](https://arxiv.org/abs/2609.06966) · [MOLE 数据](https://huggingface.co/datasets/forgelab/mole)
 
 | 研究问题 | 优先阅读 | 论文实际测量的对象 |
 | --- | --- | --- |

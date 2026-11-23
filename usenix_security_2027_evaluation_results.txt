@@ -70,20 +70,20 @@ Table 5. In-domain ITD results using CERT and Morpheus.
 
 | Dataset | Method | View | Accuracy | Precision | Recall | F1 | ROC-AUC | PR-AUC |
 |---|---|---|---:|---:|---:|---:|---:|---:|
-| CERT-5K | Insight-LLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| CERT-5K | MARS-ITD | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Morpheus S1 internet | Insight-LLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Morpheus S1 internet | MARS-ITD | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Morpheus S2 financial | Insight-LLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Morpheus S2 financial | MARS-ITD | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Morpheus S3 AI | Insight-LLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Morpheus S3 AI | MARS-ITD | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| CERT-5K | MOLE-Cascade | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| CERT-5K | MOLE-RLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S1 internet | MOLE-Cascade | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S1 internet | MOLE-RLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S2 financial | MOLE-Cascade | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S2 financial | MOLE-RLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S3 AI | MOLE-Cascade | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S3 AI | MOLE-RLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
 
 Figure 5 should show PR curves for CERT and the three Morpheus scenarios. Figure 6 should show F1 and PR-AUC with mean and standard deviation over the five seeds.
 
 Result paragraph template:
 
-“Insight-LLM achieved [values] on CERT and [values] across the three Morpheus scenarios. MARS-ITD achieved [values] on CERT and [values] across the Morpheus scenarios. The comparison uses the same input view, subject split, threshold protocol, and classical ITD metrics.”
+“MOLE-Cascade achieved [values] on CERT and [values] across the three Morpheus scenarios. MOLE-RLM achieved [values] on CERT and [values] across the Morpheus scenarios. The comparison uses the same input view, subject split, threshold protocol, and classical ITD metrics.”
 
 6.3.2 Morpheus scenario comparison
 
@@ -91,14 +91,14 @@ Table 6. Scenario-level ITD results relative to the CERT baseline.
 
 | Method | Dataset | Accuracy | Precision | Recall | F1 | ROC-AUC | PR-AUC |
 |---|---|---:|---:|---:|---:|---:|---:|
-| Insight-LLM | CERT | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Insight-LLM | Morpheus S1 internet | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Insight-LLM | Morpheus S2 financial | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Insight-LLM | Morpheus S3 AI | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| MARS-ITD | CERT | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| MARS-ITD | Morpheus S1 internet | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| MARS-ITD | Morpheus S2 financial | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| MARS-ITD | Morpheus S3 AI | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-Cascade | CERT | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-Cascade | Morpheus S1 internet | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-Cascade | Morpheus S2 financial | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-Cascade | Morpheus S3 AI | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-RLM | CERT | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-RLM | Morpheus S1 internet | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-RLM | Morpheus S2 financial | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-RLM | Morpheus S3 AI | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
 
 Figure 7 should show a CERT-versus-Morpheus scenario comparison for F1 and PR-AUC. No ChimeraLog, TWOS, or UNM ITD score is included.
 
@@ -108,16 +108,16 @@ Table 7. Agent-aware views on identical Morpheus test employee-days.
 
 | Method | View | Accuracy | Precision | Recall | F1 | ROC-AUC | PR-AUC |
 |---|---|---:|---:|---:|---:|---:|---:|
-| Insight-LLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Insight-LLM | + Agent identity | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Insight-LLM | + delegation/authorization | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Insight-LLM | + Skill/Memory provenance | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| Insight-LLM | Full Agent-aware | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| MARS-ITD | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| MARS-ITD | + Agent identity | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| MARS-ITD | + delegation/authorization | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| MARS-ITD | + Skill/Memory provenance | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
-| MARS-ITD | Full Agent-aware | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-Cascade | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-Cascade | + Agent identity | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-Cascade | + delegation/authorization | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-Cascade | + Skill/Memory provenance | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-Cascade | Full Agent-aware | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-RLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-RLM | + Agent identity | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-RLM | + delegation/authorization | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-RLM | + Skill/Memory provenance | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| MOLE-RLM | Full Agent-aware | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
 
 Figure 8 should show paired slopes from Common to Full Agent-aware for F1 and PR-AUC.
 
@@ -127,7 +127,7 @@ Confusion matrices and representative traces should explain false positives and 
 
 Table 8. Error counts at the selected detector threshold.
 
-| Error category | Insight-LLM | MARS-ITD | Common view | Agent-aware view |
+| Error category | MOLE-Cascade | MOLE-RLM | Common view | Agent-aware view |
 |---|---:|---:|---:|---:|
 | Authorized collaboration flagged | [fill] | [fill] | [fill] | [fill] |
 | Threat missed | [fill] | [fill] | [fill] | [fill] |
@@ -136,6 +136,6 @@ Table 8. Error counts at the selected detector threshold.
 
 Final result paragraph template:
 
-“The realism evaluation established [result] for CERT, TWOS, UNM, ChimeraLog, and the three Morpheus scenarios across the four fixed indicators. On ITD, Insight-LLM and MARS-ITD achieved [classical metric results] on CERT and the three Morpheus scenarios. The Agent-aware views changed F1 and PR-AUC by [values] on the paired Morpheus test employee-days. These results support [precise supported claim] and leave [limitation] unresolved.”
+“The realism evaluation established [result] for CERT, TWOS, UNM, ChimeraLog, and the three Morpheus scenarios across the four fixed indicators. On ITD, MOLE-Cascade and MOLE-RLM achieved [classical metric results] on CERT and the three Morpheus scenarios. The Agent-aware views changed F1 and PR-AUC by [values] on the paired Morpheus test employee-days. These results support [precise supported claim] and leave [limitation] unresolved.”
 
 The paper must report failed integrity checks, excluded records, dataset-specific modality differences, and detector-version differences. It must not treat TWOS, UNM, or ChimeraLog as ITD test results in the main experiment.

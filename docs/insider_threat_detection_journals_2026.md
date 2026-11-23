@@ -125,6 +125,14 @@ IEEE Transactions on Information Forensics and Security（TIFS）按中国计算
 
 ## 选择建议
 
-如果只复现三篇，优先顺序是 **ISFL-AE、双图 GCN-BiLSTM、MARS-ITD**。它们分别覆盖个体条件化重构、关系加时间建模、多智能体检测与调查。若要做完整的 Morpheus 对照组，再加入 **BTITD** 作为时间戳双流基线，加入 **Future Internet** 作为漂移和隐私基线，加入 **Discover Computing** 作为特征工程与 PR-AUC 的消融基线。
+### 面向 Morpheus 主实验的开源方法筛选
+
+2026-11-23 对候选方法的官方代码入口进行了复核。Insight-LLM 和 MARS-ITD 仍未找到可核验的官方实现，不能作为需要完整复现的主实验方法。结构化风险指标方法的论文和开放权重模型可访问，但未找到作者维护的检测代码仓库，也不纳入主实验。
+
+MOLE 是当前最符合主实验约束的开源方法。其论文发表于 2026 年预印本，代码仓库采用 Apache-2.0，提供账号日回放、审计事件适配、LLM 语义监测器、递归 Agent 监测器、预算式级联监测器和评测脚本。Morpheus 主实验从同一仓库固定两个监测器配置。**MOLE-Cascade** 先用低成本筛选器选择需要语义审查的账号日，**MOLE-RLM** 使用递归式 Agent 访问当前轨迹和历史证据后输出怀疑分数。两者都适合映射到 CERT user-day 和 Morpheus employee-day。
+
+因此，当前主实验使用 **MOLE-Cascade 和 MOLE-RLM**。ISFL-AE、双图 GCN-BiLSTM 和 BTITD 保留为后续非大模型基线候选，不与主实验的 Agent 方法混在同一张核心表中。
+
+代码仓库为 [MOLE](https://github.com/aashiqmuhamed/mole)，论文为 [arXiv:2609.06966](https://arxiv.org/abs/2609.06966)，数据为 [Hugging Face forgelab/mole](https://huggingface.co/datasets/forgelab/mole)。
 
 本清单没有把“内部威胁”题名之外的通用网络异常、APT provenance 或防御博弈论文列为直接检测器。也没有把普通会议、预印本和综述当作正式期刊方法论文。

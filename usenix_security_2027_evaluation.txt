@@ -8,7 +8,7 @@ RQ1. Does Morpheus-Harness preserve the temporal, complexity, diversity, and org
 
 RQ2. Does Morpheus-Harness preserve the existing temporal, complexity, diversity, and organizational indicators when compared with the fixed reference datasets?
 
-RQ3. Do Insight-LLM and MARS-ITD detect threats on CERT and the three Morpheus-Harness scenarios, and does Agent-aware evidence improve classical ITD metrics on the same Morpheus-Harness test employees?
+RQ3. Do the open-source MOLE-Cascade and MOLE-RLM monitors detect threats on CERT and the three Morpheus-Harness scenarios, and does Agent-aware evidence improve classical ITD metrics on the same Morpheus-Harness test employees?
 
 The protocol follows a serial spine with parallel branches inside each stage. The first stage completes all source preparation and generation. The second stage completes and freezes the four realism indicators for all sources. The third stage evaluates CERT and the three Morpheus-Harness scenarios with ITD methods. A later stage cannot start until every branch in the current stage has completed.
 
@@ -114,17 +114,19 @@ The single generator model is evaluated separately in the internet-company, fina
 
 5.3.1 Detection methods
 
-We evaluate Insight-LLM and MARS-ITD using frozen implementation versions, preprocessing scripts, commits, and hyperparameters. Both methods use the same subject splits, input views, threshold protocol, and five seeds.
+We evaluate two open-source monitors from the MOLE repository using a frozen repository commit, preprocessing adapter, and configuration. MOLE is a recent benchmark for detecting insider activity by AI-operated accounts. Its repository provides the monitor interface, replay code, audit-event schema, label alignment, and evaluation scripts under an Apache-2.0 license.
 
-Insight-LLM is evaluated with the multi-view inputs supported by its implementation. MARS-ITD is evaluated with its parallel screening and cross-log collaborative investigation pipeline. Neither detector receives dataset identifier, model identifier, scenario identifier, threat-family label, attack identifier, or direct benign/threat label.
+MOLE-Cascade is the cost-bounded two-stage monitor. It ranks all account-days with a low-cost screen and escalates only the selected fraction to the semantic LLM judge. MOLE-RLM is the recursive Agent monitor. It investigates an account-day with iterative evidence access and historical context before returning a suspicion score and rationale. Both monitors consume the same canonical account-day event interface.
+
+CERT user-days are adapted to MOLE account-day events. Morpheus employee-days are adapted from the employee, Agent, tool, authorization, provenance, and outcome logs. The common input view exposes only fields available in the corresponding source. Neither detector receives dataset identifier, model identifier, scenario identifier, threat-family label, attack identifier, direct benign/threat label, or post-hoc adjudication.
 
 5.3.2 ITD tasks and baseline use
 
-D1, in-domain detection. Train and test Insight-LLM and MARS-ITD separately on CERT, Morpheus internet, Morpheus financial, and Morpheus AI. Report the six classical metrics for each dataset.
+D1, in-domain detection. Fit and test MOLE-Cascade and MOLE-RLM separately on CERT, Morpheus internet, Morpheus financial, and Morpheus AI. Report the six classical metrics for each dataset.
 
 D2, scenario comparison. Compare the three Morpheus scenarios with the CERT baseline under the same Common view, subject partition, threshold protocol, and five seeds.
 
-D3, Agent-aware increment. On identical Morpheus-Harness employee-day test subjects, compare Common view with progressively added Agent identity, delegation and authorization, and Skill/Memory provenance. The increment is reported using the same classical metrics.
+D3, Agent-aware increment. On identical Morpheus-Harness employee-day test subjects, compare Common view with progressively added Agent identity, delegation and authorization, and Skill/Memory provenance for both MOLE monitors. The increment is reported using the same classical metrics.
 
 TWOS, UNM, and ChimeraLog are used for realism only. ITD results cover CERT and the three Morpheus scenarios. We report results per dataset because the native modalities and label semantics are different.
 
@@ -166,6 +168,8 @@ Required artifacts include raw_events.jsonl, employee_day.csv, trajectory.jsonl,
 
 [4] W. Schonlau, W. DuMouchel, W. Ju, A. Karr, M. Theus, and Y. Vardi. “Computer Intrusion: Detecting Masquerades.” Statistical Science, 16(1), 2001, pp. 58--74. https://www.schonlau.net/intrusion.html
 
-[5] Xia Song et al. “Insight-LLM: LLM-Enhanced Multi-View Fusion for Insider Threat Detection.” WWW, 2026. DOI: 10.1145/3774904.3792398. https://doi.org/10.1145/3774904.3792398
+[5] Aashiq Muhamed and Virginia Smith. “Mole: Detecting Insider Threats in AI Agents.” arXiv:2609.06966, 2026. https://arxiv.org/abs/2609.06966
 
-[6] Kai Cheng, Dongkun Li, Weidong Tang, Lintao Tan, Kaicheng Xiang, Tao Liu, and Weizhong Qiang. “Multi-Agent Real-Time Detection of Insider Threats via Collaborative Reasoning.” Security and Privacy, 2026. DOI: 10.1002/spy2.70243. https://doi.org/10.1002/spy2.70243
+[6] MOLE open-source implementation. https://github.com/aashiqmuhamed/mole
+
+[7] MOLE dataset. https://huggingface.co/datasets/forgelab/mole

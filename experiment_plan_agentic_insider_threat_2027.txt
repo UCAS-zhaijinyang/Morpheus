@@ -3,21 +3,23 @@ Morpheus-Harness USENIX Security 2027 实验执行计划
 一、实验入口与需要使用的 GitHub 仓库
 
 1. 当前 Morpheus-Harness 源码仓库
-   https://github.com/fish98/Chimera
+   https://github.com/UCAS-zhaijinyang/Morpheus
 
 2. CERT 数据预处理参考仓库
    https://github.com/lcd-dal/feature-extraction-for-CERT-insider-threat-test-datasets
 
-3. CERT 图结构检测参考仓库
-   https://github.com/Chaofan-Z/InsiderThreatDetection
+3. MOLE 开源仓库
+   https://github.com/aashiqmuhamed/mole
 
-4. Insight-LLM
-   当前没有找到可以核验的官方 GitHub 仓库。使用论文协议或作者后续公开的官方实现。
-   https://doi.org/10.1145/3774904.3792398
+4. MOLE 论文与数据集
+   https://arxiv.org/abs/2609.06966
+   https://huggingface.co/datasets/forgelab/mole
 
-5. MARS-ITD
-   当前没有找到可以核验的官方 GitHub 仓库。使用论文协议或作者后续公开的官方实现。
-   https://doi.org/10.1002/spy2.70243
+方法筛选记录
+- Insight-LLM 和 MARS-ITD 的论文没有可核验的官方开源实现，因此从主实验中移除。
+- “LLMs for Zero-Shot Threat Detection via Structured Risk Indicators”提供了开放权重模型组合，但截至本计划冻结时没有可核验的官方代码仓库，因此不作为主实验方法。
+- MOLE 是 2026 年公开的 Agent 内部威胁检测基准，仓库提供 Apache-2.0 代码、监测器、评测脚本、审计事件和账号日标签。
+- 本计划采用 MOLE 仓库中的两个可复现监测器配置：MOLE-Cascade 和 MOLE-RLM。两者输入接口一致，便于在 CERT 与 Morpheus 上进行公平适配。
 
 二、固定数据集与模型配置
 
@@ -32,7 +34,7 @@ Morpheus-Harness USENIX Security 2027 实验执行计划
   - AI 公司：5,000 条。
 - 每个 Morpheus 场景包含 100 名员工、50 个工作日、4,000 条正常数据和 1,000 条内部威胁数据。
 - 每名员工 1 个 Personal Agent，每个企业 1 个共享 Enterprise Agent。
-- ITD 方法：Insight-LLM、MARS-ITD。
+- ITD 方法：MOLE-Cascade、MOLE-RLM。
 - ITD 数据集：CERT、Morpheus 互联网公司、Morpheus 金融机构、Morpheus AI 公司。
 - ITD 指标：Accuracy、Precision、Recall、F1、ROC-AUC、PR-AUC。
 - 正式 ITD 实验使用 5 个固定随机种子，并报告均值、标准差和 95% bootstrap 置信区间。
@@ -125,10 +127,10 @@ Morpheus 额外检查员工画像、日程执行一致性、Personal Agent、Ent
 
 ### 第六步：并行准备 ITD 环境与 CERT 基线
 
-真实性阶段冻结后，准备 Insight-LLM 和 MARS-ITD 的实现或复现环境。
+真实性阶段冻结后，准备 MOLE-Cascade 和 MOLE-RLM 的实现与复现环境。
 
-- 任务 I1：Insight-LLM 在 CERT 上的 in-domain 基线。
-- 任务 I2：MARS-ITD 在 CERT 上的 in-domain 基线。
+- 任务 I1：MOLE-Cascade 在 CERT 上的 in-domain 基线。
+- 任务 I2：MOLE-RLM 在 CERT 上的 in-domain 基线。
 
 两个任务使用相同的主体划分、输入视图、阈值策略和五个固定随机种子，可以并行运行。
 
@@ -138,14 +140,14 @@ ITD 只评测 CERT 和 Morpheus 三个场景。ChimeraLog、TWOS、UNM 不进入
 
 以下任务可以并行运行：
 
-- Insight-LLM × CERT。
-- Insight-LLM × Morpheus 互联网公司。
-- Insight-LLM × Morpheus 金融机构。
-- Insight-LLM × Morpheus AI 公司。
-- MARS-ITD × CERT。
-- MARS-ITD × Morpheus 互联网公司。
-- MARS-ITD × Morpheus 金融机构。
-- MARS-ITD × Morpheus AI 公司。
+- MOLE-Cascade × CERT。
+- MOLE-Cascade × Morpheus 互联网公司。
+- MOLE-Cascade × Morpheus 金融机构。
+- MOLE-Cascade × Morpheus AI 公司。
+- MOLE-RLM × CERT。
+- MOLE-RLM × Morpheus 互联网公司。
+- MOLE-RLM × Morpheus 金融机构。
+- MOLE-RLM × Morpheus AI 公司。
 
 每个任务报告 Accuracy、Precision、Recall、F1、ROC-AUC 和 PR-AUC，并保存预测分数和混淆矩阵。
 
@@ -181,6 +183,7 @@ ITD 只评测 CERT 和 Morpheus 三个场景。ChimeraLog、TWOS、UNM 不进入
 - 真实性阶段完成后，才能启动第六步和第七步 ITD。
 - 第六步 CERT 基线与第七步 Morpheus ITD 可以在 ITD 阶段内部并行运行，最终统一汇总。
 - ITD 只包含 CERT 和 Morpheus 三个场景。
+- MOLE 的账号日排序和预算信息只作为运行成本及复现元数据保存，不增加主论文 ITD 指标。
 - smoke test 只用于检查运行链路，不作为论文结果。
 - 正式结果必须保留数据版本、代码 commit、subject split、seed、阈值和失败记录。
 
