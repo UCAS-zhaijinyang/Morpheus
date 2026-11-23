@@ -1,109 +1,69 @@
 # 4 Morpheus-Datasets
 
-Morpheus-Datasets models insider threats in enterprise workflows where employees delegate work to AI agents. A single routine action, such as reading a project document or sending a report, may appear in both benign and threat traces. The security distinction depends on whose authority enabled the action, which business purpose authorized it, and what happened to the data or resource. We use these distinctions to define threat cases, choose organizational settings, and specify the evidence needed to label a trace.
+Morpheus-Datasets is designed for insider-threat detection in enterprise workflows that include delegated AI execution. The modeling starts with ordinary work and asks when an action that appears routine becomes unauthorized because its purpose, authority, information flow, or persistent procedure has changed. This section explains the prior work that we inherit, the new modeling ideas introduced by Morpheus, the rationale for the three organizational settings, and the generation configuration used for the dataset.
 
-## 4.1 Modeling Agent-Mediated Insider Threats
+## 4.1 Threat-Modeling Rationale
 
-We start from CISA’s definition of insider threat, in which a person’s authorized access or organizational knowledge can contribute to harm [1]. We retain Chimera’s practice of embedding threat activity in ordinary work and using the 5W1H taxonomy to connect actors, objectives, timing, settings, motivations, and actions to observable evidence [2]. In Morpheus, the scenario specification represents the initiating employee, the acting agent, the source of the input or procedure, and the affected resource as distinct elements and records the delegation that connects the employee to the agent. A single action can therefore be assessed against the authority granted for that task.
+### 4.1.1 Inheritance from Prior Work
 
-We next define what the organization permits in the underlying task. Following attribute-based access control and work on purpose restrictions, we describe authorization in terms of the acting party, the resource, the operation, and the circumstances of use [3, 4]. For delegated work, the relevant circumstances include the approved task purpose, the scope and duration of the delegation, and the permitted recipients. For a reused procedure, they also include the context in which the procedure was created and the context in which it is applied. The scenario definitions encode each boundary alongside the observable evidence needed to assess it, such as the approved recipient and the recorded destination of a disclosure.
+Morpheus inherits the authorized-access view of insider threat. CISA defines insider threat around a current or former member's authorized access or organizational knowledge and the possibility that this access or knowledge contributes to harm [1]. The CERT Insider Threat Test Dataset provides a complementary behavioral baseline with employee activity and scripted malicious behavior [3]. These sources establish two principles for our setting. An insider action may use a valid account, and the security meaning of an event cannot be inferred from the event type alone.
 
-Three threat families follow from this progression. In **AI-mediated data-boundary abuse (T1)**, an employee has legitimate access to task-relevant information, and the security question is whether the agent’s use or disclosure of that information remains within the approved purpose and destination. Generative AI risk guidance and tool-use benchmarks motivate tracing the source, the agent action, and the resulting disclosure [5, 6]. In **cross-department workflow abuse (T2)**, individually authorized handoffs can produce a combined artifact whose use exceeds the project’s approval. The label therefore depends on the full sequence of handoffs and the final use. This extends the user–resource context emphasized by Facade to the authorization of a composed workflow [7]. In **skill or memory contamination (T3)**, a procedure saved in one context influences a later action under different permissions. The evidence ties the reused procedure to its origin and to the resulting action. The design draws on documented risks in reusable agent skills [8].
+Our closest methodological predecessor is Chimera [2]. Chimera constructs organization profiles, role- and personality-conditioned employee agents, shared goals, schedules, ordinary interactions, threat behaviors, and unified logs. It embeds malicious behavior in routine work instead of presenting an isolated attack script. We inherit this ordinary-work embedding, the use of 5W1H to describe who, what, when, where, why, and how, and the mapping of attack stages to observable procedure evidence and detection data sources. Chimera also motivates using multiple organizational settings and long-horizon activity because an insider detector should be evaluated under normal collaboration and distribution shift.
 
-For each threat case, the protocol pairs an authorized workflow with an intervention that varies one policy-relevant condition, such as the approved recipient, the validity of a delegation, or the scope of a reused procedure. The employee, task, initial schedule, and other starting conditions are held fixed within a pair. A completed violation requires evidence of a policy breach and an observed effect in the simulated environment. Blocked attempts are recorded separately. The detector’s input excludes the intervention marker and the final adjudication.
+We also inherit the policy perspective from attribute-based access control and purpose-restriction research. NIST SP 800-162 treats authorization as a function of the subject, object, operation, environment, and policy attributes [5]. Purpose-restriction research formalizes the fact that permission to read an object does not imply permission to use every derived result for every purpose [6]. NIST Zero Trust similarly requires access decisions to be evaluated in the current context [16]. Facade shows why user and resource context matters for high-precision insider-threat detection in enterprise logs [7]. These works guide the authorization questions in our scenarios, while Morpheus adds the organization and execution state needed for AI-mediated workflows.
+
+Recent AI-security work supplies the second part of the inherited foundation. NIST AI 600-1 identifies data privacy, information security, and human-AI configuration as generative-AI risk dimensions [8]. AgentDojo makes the path from external content to model reasoning, tool invocation, and environment state measurable [9]. OWASP's agentic risk taxonomy separates identity and privilege abuse, tool misuse, memory or context poisoning, and insecure inter-agent communication [10]. The study of malicious Agent skills provides evidence that reusable procedures can become a supply-chain attack surface [11]. These works motivate AI-specific observations, but they do not provide a single enterprise model that combines department purpose, delegated authority, Agent execution, and downstream effects.
+
+The inherited unit is therefore a long-running, multi-agent representation of ordinary organizational activity with stage-level evidence. Morpheus extends the unit of analysis from an employee event or account-day to an organizationally constrained execution chain. The extension is introduced below as additions to the threat model, rather than as a replacement for Chimera's simulation philosophy.
+
+### 4.1.2 Organization-Constrained Trajectory Generation
+
+The first new idea is to treat organizational context as a security state variable. We arrived at this design by comparing insider-threat taxonomies, access-control research, enterprise workflow guidance, and the work patterns represented in our three scenario families. Across these sources, the same authorization questions recur. Which department owns the resource? Why is the requester involved in the project? Which dependency or reporting path makes the handoff plausible? What approval permits the action? For how long is the approval valid? Who may receive the resulting artifact? These questions are part of the security semantics of an event, not background text attached to a schedule.
+
+We abstract the recurring patterns into an organization-constrained trajectory. The organization contains departments, employees, projects, resources, tools, and Agents linked by ownership, reporting, dependency, visibility, approval, and delegation relationships. A work item is admissible only when its role, resource, operation, business purpose, timing, and approval path are consistent with those relationships. This abstraction follows ABAC and purpose restrictions, while making the relationships between departments and projects explicit. It also preserves Chimera's principle that employees should be observed while pursuing plausible organizational goals.
+
+This organization-first ordering is important for internal-threat modeling. A local permission check can succeed while the composed information flow violates the project purpose. For example, an employee may be temporarily assigned to support another department, receive a narrowly scoped document, and obtain a valid approval for a summary. Combining several such summaries for a recipient outside the dependency path can still exceed the original authorization. The threat in T2 is therefore defined by the global workflow and its final use, rather than by any single cross-department read. This captures low-and-slow behavior that account-centered logs tend to fragment.
+
+The modeling philosophy is to study real workflows before writing attack cases. We first identify recurring organizational patterns such as incident response, regulated review, temporary coverage, model evaluation, and release approval. We then abstract their stable constraints and project those constraints into executable trajectories. The resulting trajectory retains normal task pressure, handoffs, approvals, and tool use. A threat intervention changes one organizational condition, such as a dependency edge, approval scope, delegation window, or recipient purpose. This makes the organizational constraint graph an experimental object. It is possible to ask whether changing a department goal affects that department and its dependents, whether removing a permission causes a legitimate alternative workflow, and whether an expired delegation prevents a downstream action.
+
+### 4.1.3 AI-Mediated Execution and Provenance
+
+The second new idea is to model AI execution as a distinct, traceable part of the authorization chain. In conventional insider-threat data, the employee account is often treated as both requester and executor. In Morpheus, the human employee may initiate or approve a task, a planner may decompose it, an enterprise Agent may retrieve or transform data, and a tool-facing Agent may issue the final API call. These roles can share an organizational identity while having different runtime state and delegated scope. Separating them allows a detector to distinguish who requested an action, who was authorized to perform it, which Agent executed it, and which resource or recipient was affected.
+
+This separation also changes how we model AI data flows. We trace the source that enters an Agent context, the human purpose that authorized the task, the model or Agent context that processes the source, the tool call that creates an effect, and the recipient or state change that follows. T1 uses this chain to represent a legitimate source read followed by an output sent to an unapproved model endpoint, storage location, or recipient. The local read and the local tool call can look ordinary. The violation appears in the relationship between the source authorization, the delegated purpose, and the final data boundary. External content can be recorded as a source without being mislabeled as an insider. The insider label requires that the harmful effect depend on internal authority, organizational information, or an enterprise execution chain.
+
+Morpheus also treats planning and handoff as security-relevant transitions. The execution path for a simple low-risk task can differ from the path for a multi-step or high-sensitivity task that requires planning, review, or delegation. The route, handoff, executor, tool invocation, policy decision, and resulting state are retained as one causal trace. This follows the trajectory-level emphasis of AgentDojo and policy-aware Agent auditing while placing the events inside a department and project context.
+
+The third addition within the AI model is provenance-constrained procedural memory. A Skill or Memory item is an executable procedure, not merely text retrieved by similarity. Its safe reuse depends on where it came from, which role and department created it, which resources and recipients it covered, which preconditions and postconditions it had, whether it has expired, and whether the current task still satisfies those conditions. T3 models a procedure that was valid in an earlier context but is reused after the current role, purpose, tenancy, resource scope, or approval window changes. The threat is the resulting unauthorized tool effect and any subsequent propagation of the contaminated procedure. This design turns skill origin, scope, expiry, validation, and reuse into security variables while retaining the utility of normal workflow reuse.
+
+The AI-specific philosophy is consequently provenance before intent. A natural-language instruction can describe a harmful goal, but it cannot by itself establish that the instruction was executed, that the execution violated a policy, or that an internal authority enabled the effect. Morpheus evaluates the full source-to-context-to-handoff-to-tool path and keeps the source, principal, executor, and effect distinct. This is the additional information needed to study delegation, data-boundary crossing, tool misuse, and persistent skill contamination in the same organizational setting.
+
+### 4.1.4 Counterfactual Threat Construction and Labeling
+
+The final modeling addition is a controlled counterfactual design. A threat is generated as a modification of an ordinary workflow, not as an unrelated attack story. For each pair, the organization graph, employee roles, project goal, schedule, initial permissions, tool state, and model configuration are held fixed. Where supported, the same random seed and route-selection procedure are used. Exactly one intervention changes. The intervention may be an output recipient or model endpoint in T1, an approval or dependency condition in T2, or a provenance, scope, tenancy, or expiry condition in T3.
+
+This design follows Chimera's use of staged observable behavior and extends it with locality. A valid intervention should change the affected part of the trajectory and the downstream state that depends on it. It should not create an unrelated organization, employee, or schedule. The pair therefore supports security analysis at comparable difficulty and makes it possible to attribute a detection difference to the intended organizational or AI condition.
+
+Labels are assigned from executable evidence. A completed insider-threat label requires an internal authority or organizational dependency, an applicable policy boundary, evidence that the boundary was violated, and an observed effect such as an unauthorized disclosure, state change, or propagation of an invalid procedure. A malicious sentence without an executed effect is insufficient. A blocked attempt is retained as a separate outcome because it measures prevention and should not be conflated with a completed compromise. Intervention identifiers and final adjudications are withheld from detector inputs.
+
+This construction is the bridge between the framework innovations and the dataset. Published workflow and security research supplies recurring patterns. Organization constraints determine when a request is plausible. AI provenance determines how delegated execution and persistent procedures can cross those constraints. The counterfactual pair makes the resulting security distinction measurable without requiring a detector to learn a scenario identifier or a hand-written attack marker.
 
 ## 4.2 Selection of Organizational Settings
 
-Following Chimera’s use of organizational settings with different work and access patterns [2], we select three settings that give the same threat families different security contexts. All three involve employee roles, shared resources, and delegated work. Customer and service boundaries matter most in the internet setting, documented approvals in the financial setting, and artifact provenance in the AI development setting.
+We select the three settings because they exercise complementary authorization boundaries while retaining the ordinary employee collaboration that makes insider threats difficult to detect. The Internet setting emphasizes fast-moving service work and customer or tenant boundaries. The financial setting emphasizes formal supervision, approval validity, and records. The AI-company setting emphasizes data, model, and procedure provenance across an AI development lifecycle. Together they cover the three new Morpheus dimensions, data-flow purpose, organizational composition, and AI-mediated persistence, under distinct operational constraints.
 
-**Internet software company.** We model a provider of online business software whose support, engineering, and reliability teams collaborate on customer incidents. Google’s site reliability engineering guidance describes a workflow in which teams jointly prepare and review incident reports, share findings, and restrict access to information that can identify users [9]. This setting supplies a benign reason to move information between teams and tools while retaining a clear tenant boundary. It tests whether a detector can distinguish authorized collaboration on an incident from disclosure outside the approved audience, even when both traces contain similar reads and updates.
+**Internet software company.** We model a provider of online business software whose customer-support, engineering, and reliability teams handle incidents together. Google SRE guidance describes joint incident analysis, review of postmortems, and controlled handling of information that can identify users [13]. This creates frequent legitimate movement of data across teams and tools while retaining a clear customer or tenant boundary. The setting is well suited to T1 because a source read, model transformation, and incident update may all be routine, whereas the final recipient or external endpoint can violate the approved boundary. It also supplies normal cross-team handoffs for testing whether a detector distinguishes collaboration from disclosure.
 
-**Financial institution.** We model a securities firm with research, risk, operations, and compliance functions. FINRA’s rules on supervision and records provide concrete precedents for documented review and retention in a member firm [10, 11]. A routine risk review can legitimately combine information held by several departments, and its authorization can depend on the project, reviewer, and duration of approval. This setting makes it possible to test whether a detector can identify a violation in the combined workflow when each individual access has a plausible business explanation.
+**Financial institution.** We model a securities firm with research, risk, operations, and compliance functions. FINRA Rule 3110 requires supervisory systems and written procedures, while Rule 4511 addresses books and records [14, 15]. These requirements make approval, reviewer identity, retention, and validity windows natural parts of ordinary work. A risk review may legitimately aggregate information from several departments, yet the complete artifact may be unauthorized when the project, recipient, or approval scope changes. This setting therefore stresses T2 and provides a regulated workflow in which local authorization and global purpose can diverge.
 
-**AI model development company.** We model a company whose workflow spans data preparation, model evaluation, and release review. NIST’s secure development profile for generative AI grounds the use of provenance and integrity checks for data and model artifacts [12]. Here, the approved use of an evaluation artifact or reusable procedure can depend on the experiment and artifact version. Repeated evaluations and releases provide ordinary occasions to reuse procedures, so the setting tests whether a detector can identify reuse that causes a policy violation after the authorized context changes.
+**AI model development company.** We model an organization that spans data preparation, model evaluation, safety review, and release. NIST SP 800-218A emphasizes secure development practices for generative-AI and dual-use foundation-model systems [12]. In this setting, an evaluation artifact or reusable procedure is meaningful only with its experiment, version, owner, and intended use. Repeated evaluations and releases create legitimate opportunities for procedural reuse, while changes in data scope, tenant, role, or approval make stale reuse dangerous. This setting therefore stresses T3 and tests whether provenance-aware reuse can distinguish ordinary automation from skill or memory contamination.
+
+The three settings are deliberately complementary rather than three instances of one industry. Their differences expose whether a detector relies on surface vocabulary or learns the authorization and provenance relations that define the threat. Their common structure preserves the possibility of matched cross-setting evaluation.
 
 ## 4.3 Data Generation Configuration
 
-The planned generation protocol uses DeepSeek Harness (`deepseek-harness`) and defines one simulated organization per setting. Each organization has 100 simulated employees and a horizon of 50 workdays, arranged as ten Monday–Friday weeks. This gives a nominal capacity of 5,000 employee-days per organization and 15,000 across the three settings, before counting additional traces from matched interventions. An employee-day groups one employee’s recorded activity on one simulated workday. Organization goals and employee roles establish the routine schedules in which the threat cases are evaluated.
+We configure generation with the deepseek-harness harness. The dataset contains one simulated organization for each of the three settings. Each organization has 100 simulated employees and a 50-workday horizon arranged as ten Monday-to-Friday weeks. The resulting baseline capacity is 5,000 employee-days per organization and 15,000 employee-days across the three settings. An employee-day represents the recorded activity of one employee during one simulated workday. Matched benign and threat trajectories are generated from the same organizational state and are counted as paired traces for evaluation.
+
+The organization profile, employee roles, department relationships, project goals, schedule context, tools, Agent registry, and procedural-memory state are initialized independently for each setting. Daily work provides the ordinary activity in which the intervention is embedded. The generator records human and Agent participation, delegated execution, source and procedure provenance, tool effects, and the evidence used for the final label. These configuration choices define the target dataset scale and generation protocol. They do not by themselves constitute completed experimental results.
 
 ## References
-
-[1] Cybersecurity and Infrastructure Security Agency. *Insider Threat Mitigation*. [CISA](https://www.cisa.gov/topics/physical-security/insider-threat-mitigation)
-
-[2] Jiongchi Yu, Xiaofei Xie, Qiang Hu, Yuhan Ma, and Ziming Zhao. “Chimera: Harnessing Multi-Agent LLMs for Automatic Insider Threat Simulation.” *Network and Distributed System Security Symposium*, 2026. [NDSS](https://www.ndss-symposium.org/ndss-paper/chimera-harnessing-multi-agent-llms-for-automatic-insider-threat-simulation/)
-
-[3] Vincent C. Hu et al. *Guide to Attribute Based Access Control (ABAC) Definition and Considerations*. NIST SP 800-162, updated 2019. [NIST](https://csrc.nist.gov/pubs/sp/800/162/upd2/final)
-
-[4] Michael Carl Tschantz, Anupam Datta, and Jeannette M. Wing. “Formalizing and Enforcing Purpose Restrictions in Privacy Policies.” *IEEE Symposium on Security and Privacy*, 2012. [DOI](https://doi.org/10.1109/SP.2012.21)
-
-[5] Chloe Autio et al. *Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile*. NIST AI 600-1, 2024. [DOI](https://doi.org/10.6028/NIST.AI.600-1)
-
-[6] Edoardo Debenedetti et al. “AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents.” *Advances in Neural Information Processing Systems*, 37, 2024. [NeurIPS](https://proceedings.neurips.cc/paper_files/paper/2024/hash/97091a5177d8dc64b1da8bf3e1f6fb54-Abstract-Datasets_and_Benchmarks_Track.html)
-
-[7] Alex Kantchelian et al. “Facade: High-Precision Insider Threat Detection Using Deep Contextual Anomaly Detection.” *35th USENIX Security Symposium*, 2026. [USENIX](https://www.usenix.org/conference/usenixsecurity26/presentation/kantchelian)
-
-[8] Yi Liu et al. “Do Not Mention This to the User: Detecting and Understanding Malicious Agent Skills in the Wild.” *35th USENIX Security Symposium*, 2026. [USENIX](https://www.usenix.org/conference/usenixsecurity26/presentation/liu-yi)
-
-[9] John Lunney and Sue Lueder. “Postmortem Culture: Learning from Failure.” In *Site Reliability Engineering*, 2016. [Google SRE](https://sre.google/sre-book/postmortem-culture/)
-
-[10] Financial Industry Regulatory Authority. *Rule 3110. Supervision*. [FINRA](https://www.finra.org/rules-guidance/rulebooks/finra-rules/3110)
-
-[11] Financial Industry Regulatory Authority. *Rule 4511. General Requirements*. [FINRA](https://www.finra.org/rules-guidance/rulebooks/finra-rules/4511)
-
-[12] Harold Booth, Murugiah Souppaya, Apostol Vassilev, Michael Ogata, Martin Stanley, and Karen Scarfone. *Secure Software Development Practices for Generative AI and Dual-Use Foundation Models: An SSDF Community Profile*. NIST SP 800-218A, 2024. [DOI](https://doi.org/10.6028/NIST.SP.800-218A)
-
----
-
-# 4 Morpheus-Datasets 数据集
-
-Morpheus-Datasets 对企业员工将任务委托给 AI 智能体时产生的内部威胁进行建模。读取项目文档、发送报告等常规操作可以同时出现在正常轨迹和威胁轨迹中。判断操作的安全性，需要知道它由谁的权限支持、获批的业务目的是什么，以及相关数据或资源实际发生了什么变化。我们据此定义威胁案例、选择组织场景，并规定标注轨迹所需的证据。
-
-## 4.1 智能体介导的内部威胁建模
-
-我们从 CISA 对内部威胁的定义出发。内部人员拥有的授权访问权限或组织知识可能被用于造成损害 [1]。我们沿用 Chimera 将威胁活动嵌入日常工作的做法，并使用 5W1H 方法将参与者、目标、时机、环境、动机和行为与可观察证据关联起来 [2]。Morpheus 的场景规范分别记录发起任务的员工、执行操作的智能体、输入或流程的来源、受影响的资源，以及员工与智能体之间的委托关系。这样就可以依据具体任务的授权判定一次操作是否合规。
-
-接下来，我们界定组织在具体业务任务中允许哪些操作。参考基于属性的访问控制及用途限制研究，我们从行为主体、资源、操作和使用情境描述授权 [3, 4]。在委托任务中，使用情境包括获批任务目的、委托的范围和有效期，以及允许接收结果的对象。若任务涉及流程复用，还需记录流程产生时的授权情境及本次使用时的情境。场景定义同时记录安全边界与判定所需的可观察证据，例如获批接收者和实际披露的目的地。
-
-据此构建三类威胁。**AI 介导的数据边界滥用（T1）**始于员工对任务相关信息的合法访问，关注智能体使用或披露信息时是否符合获批用途和接收范围。生成式 AI 风险指南和工具调用基准为关联记录源数据、智能体操作与实际披露结果提供依据 [5, 6]。在**跨部门流程滥用（T2）**中，各次交接都可能获批，但聚合产物的用途可能超出项目审批范围。判定需要检查完整的交接链和产物的最终用途。这将 Facade 所强调的用户与资源上下文延伸到对组合工作流的授权判断 [7]。在**技能或记忆污染（T3）**中，早先保存的流程在权限情境发生变化后影响了后续操作。判定需要关联流程来源、当前复用行为和实际结果。该场景参考了关于可复用智能体技能风险的实证研究 [8]。
-
-配对协议为每个威胁案例设置一条获批的工作轨迹，并改变一个与策略相关的条件，例如获批接收者、委托是否仍然有效，或被复用流程的适用范围。配对中的员工、任务、初始日程及其他起始条件保持一致。判为已发生的违规须同时具有违反策略的证据和模拟环境中可观察到的效果。被阻止的尝试单独记录，干预标记和最终裁定仅用于标注。
-
-## 4.2 组织场景选择
-
-Chimera 通过不同组织的工作流程和访问模式形成对照 [2]。沿用这一原则，我们选择三种组织，在不同的安全约束下考察同一组威胁机制。三者均包含员工角色、共享资源和任务委托。在互联网场景中，客户与服务范围是主要约束。在金融场景中，重点是有记录可查的审批。在 AI 研发场景中，重点是产物的来源和版本。
-
-**互联网软件公司。** 我们模拟一家面向企业客户的在线软件服务商，由客户支持、工程及站点可靠性团队协同处理客户事件。Google SRE 指南描述了团队共同撰写和审阅复盘报告、共享经验并限制可识别用户信息访问的实践 [9]。因此，跨团队和跨工具传递信息本身可以是正常的业务活动，同时仍受租户范围约束。即使两条轨迹包含相似的读取和更新记录，该场景也能考察检测器是否区分获批的事件协作与超出许可范围的披露。
-
-**金融机构。** 我们模拟一家承担研究、风险、运营和合规职能的证券机构。FINRA 对会员机构的监督和记录保存要求为书面复核及留存流程提供了实际依据 [10, 11]。例行风险审查可以合法汇集多个部门持有的信息，授权则可能取决于项目、审查人和审批有效期。该场景考察的是，当每次访问都有合理的业务解释时，检测器能否识别在整体工作流程中发生的越界。
-
-**AI 模型研发公司。** 我们模拟一家开展数据准备、模型评测和发布审查的公司。NIST 的生成式 AI 安全开发规范为数据和模型产物的来源及完整性检查提供依据 [12]。评测产物或可复用流程的获批用途可能取决于实验环境和产物版本。重复评测和发布本身就需要复用流程，因此该场景可以检验检测器能否识别因授权情境变化而造成违规的流程复用。
-
-## 4.3 数据生成配置
-
-计划使用 DeepSeek Harness（`deepseek-harness`），每个场景对应一个模拟组织。每家组织设置 100 名模拟员工和 50 个模拟工作日，按周一至周五安排为 10 个工作周。每家组织的计划规模为 5,000 个员工日，三个场景合计 15,000 个员工日。配对干预产生的额外轨迹另计。一个员工日汇集一名员工在一个模拟工作日中的活动记录。组织目标和岗位职责决定常规工作日程，威胁案例在这些日程所提供的业务情境下评估。
-
-## 参考文献
-
-[1] Cybersecurity and Infrastructure Security Agency. *Insider Threat Mitigation*. [CISA](https://www.cisa.gov/topics/physical-security/insider-threat-mitigation)
-
-[2] Jiongchi Yu, Xiaofei Xie, Qiang Hu, Yuhan Ma, and Ziming Zhao. “Chimera: Harnessing Multi-Agent LLMs for Automatic Insider Threat Simulation.” *Network and Distributed System Security Symposium*, 2026. [NDSS](https://www.ndss-symposium.org/ndss-paper/chimera-harnessing-multi-agent-llms-for-automatic-insider-threat-simulation/)
-
-[3] Vincent C. Hu et al. *Guide to Attribute Based Access Control (ABAC) Definition and Considerations*. NIST SP 800-162, updated 2019. [NIST](https://csrc.nist.gov/pubs/sp/800/162/upd2/final)
-
-[4] Michael Carl Tschantz, Anupam Datta, and Jeannette M. Wing. “Formalizing and Enforcing Purpose Restrictions in Privacy Policies.” *IEEE Symposium on Security and Privacy*, 2012. [DOI](https://doi.org/10.1109/SP.2012.21)
-
-[5] Chloe Autio et al. *Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile*. NIST AI 600-1, 2024. [DOI](https://doi.org/10.6028/NIST.AI.600-1)
-
-[6] Edoardo Debenedetti et al. “AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents.” *Advances in Neural Information Processing Systems*, 37, 2024. [NeurIPS](https://proceedings.neurips.cc/paper_files/paper/2024/hash/97091a5177d8dc64b1da8bf3e1f6fb54-Abstract-Datasets_and_Benchmarks_Track.html)
-
-[7] Alex Kantchelian et al. “Facade: High-Precision Insider Threat Detection Using Deep Contextual Anomaly Detection.” *35th USENIX Security Symposium*, 2026. [USENIX](https://www.usenix.org/conference/usenixsecurity26/presentation/kantchelian)
-
-[8] Yi Liu et al. “Do Not Mention This to the User: Detecting and Understanding Malicious Agent Skills in the Wild.” *35th USENIX Security Symposium*, 2026. [USENIX](https://www.usenix.org/conference/usenixsecurity26/presentation/liu-yi)
-
-[9] John Lunney and Sue Lueder. “Postmortem Culture: Learning from Failure.” In *Site Reliability Engineering*, 2016. [Google SRE](https://sre.google/sre-book/postmortem-culture/)
-
-[10] Financial Industry Regulatory Authority. *Rule 3110. Supervision*. [FINRA](https://www.finra.org/rules-guidance/rulebooks/finra-rules/3110)
-
-[11] Financial Industry Regulatory Authority. *Rule 4511. General Requirements*. [FINRA](https://www.finra.org/rules-guidance/rulebooks/finra-rules/4511)
-
-[12] Harold Booth, Murugiah Souppaya, Apostol Vassilev, Michael Ogata, Martin Stanley, and Karen Scarfone. *Secure Software Development Practices for Generative AI and Dual-Use Foundation Models: An SSDF Community Profile*. NIST SP 800-218A, 2024. [DOI](https://doi.org/10.6028/NIST.SP.800-218A)
