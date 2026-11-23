@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Morpheus-Harness Research Road</title>
+  <style>
+    :root{--ink:#172033;--muted:#5f6b7a;--line:#dbe3ee;--blue:#2563eb;--cyan:#0891b2;--green:#15803d;--amber:#b45309;--bg:#f6f8fc;--card:#fff}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+    .wrap{max-width:1180px;margin:auto;padding:34px 22px 72px}.hero{background:linear-gradient(135deg,#172554,#0e7490);color:#fff;border-radius:22px;padding:38px 42px;box-shadow:0 18px 45px #0f172a22}.eyebrow{font-size:12px;letter-spacing:.13em;text-transform:uppercase;opacity:.75}.hero h1{font-size:36px;line-height:1.2;margin:10px 0}.hero p{max-width:900px;margin:10px 0;color:#e0f2fe}.tag{display:inline-block;padding:3px 10px;border:1px solid #ffffff55;border-radius:99px;margin:7px 5px 0 0;font-size:12px}
+    h2{font-size:24px;margin:38px 0 14px}h3{margin:0 0 6px;font-size:18px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card,.road,.note{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:19px;box-shadow:0 4px 13px #17203308}.card p,.road p,.note p{margin:7px 0;color:var(--muted)}.num{font-size:27px;font-weight:750;color:var(--blue);line-height:1}.small{font-size:13px;color:var(--muted)}.pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:#e0f2fe;color:#075985;margin:2px 3px 2px 0}.warn{border-left:4px solid var(--amber);background:#fff7ed}.good{border-left:4px solid var(--green);background:#f0fdf4}.road{position:relative;padding-left:74px;margin:12px 0}.road:before{content:"";position:absolute;left:30px;top:22px;width:14px;height:14px;background:var(--blue);border-radius:50%;box-shadow:0 0 0 5px #dbeafe}.road:after{content:"";position:absolute;left:36px;top:38px;bottom:-26px;width:2px;background:#bfdbfe}.road:last-child:after{display:none}.stage{position:absolute;left:13px;top:50px;font-weight:700;color:var(--blue);font-size:12px;writing-mode:vertical-rl}.road ul{margin:8px 0 0 18px;padding:0}.road li{margin:3px 0}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}.table th,.table td{text-align:left;vertical-align:top;padding:12px 13px;border-bottom:1px solid var(--line)}.table th{background:#eff6ff;color:#1e3a8a;font-size:13px}.table tr:last-child td{border-bottom:0}.status{font-size:12px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap}.done{background:#dcfce7;color:#166534}.next{background:#fef3c7;color:#92400e}.open{background:#e0e7ff;color:#3730a3}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.mono{font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#f1f5f9;border-radius:8px;padding:2px 5px}.formula{font:16px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace;background:#0f172a;color:#dbeafe;padding:15px 18px;border-radius:10px;overflow:auto}.footer{margin-top:38px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:16px}@media(max-width:900px){.grid,.grid3{grid-template-columns:1fr 1fr}}@media(max-width:600px){.wrap{padding:18px 12px 50px}.hero{padding:27px 23px}.hero h1{font-size:28px}.grid,.grid3{grid-template-columns:1fr}.road{padding-left:58px}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow">Morpheus · ICML 2027 research road</div>
+    <h1>Morpheus-Harness：面向组织行为模拟的层级、人–Agent 协作与技能记忆 Harness</h1>
+    <p>核心假设：真实的员工行为不是“每个人收到一份计划后独立调用工具”，而是由组织层级传递的目标、当前意图、会话状态、人–Agent 交接和可复用流程共同生成。Harness 负责控制这些中间变量，并把它们变成可审计的行为轨迹。</p>
+    <span class="tag">organizational causality</span><span class="tag">fast intent gating</span><span class="tag">human–agent handoff</span><span class="tag">procedural skill memory</span><span class="tag">safe insider-threat simulation</span>
+  </section>
+
+  <div class="note warn" style="margin-top:18px"><b>审稿判断：</b>ICML 2027 中稿不能由“把四个模块拼起来”自动推出。ICML 2026 指南显示这些单点方向都已有中稿工作；本项目必须把贡献收敛为“组织级行为生成 Harness + 轨迹评测 + 安全审计协议”，并用消融实验证明每一层改变了数据真实性或安全性。下面的 <b>已实现</b> 代表仓库中已有代码，<b>待验证</b> 代表论文必须补做的实验。</div>
+
+  <h2>一条主叙事</h2>
+  <div class="grid">
+    <article class="card"><div class="num">01</div><h3>OrgPlan</h3><p>部门负责人先形成目标、依赖和容量约束，再由部门会议将其展开为员工级周目标；保留信息边界和组织依赖。</p><span class="pill">层级生成</span><span class="pill">因果轨迹</span></article>
+    <article class="card"><div class="num">02</div><h3>IntentGate</h3><p>在事件边界做快速判断：登录/登出等简单状态转移走确定性路径，邮件、浏览和工作任务进入规划–执行 Harness。</p><span class="pill">低成本</span><span class="pill">可解释路由</span></article>
+    <article class="card"><div class="num">03</div><h3>Human–Agent Handoff</h3><p>将现有的“分步骤 Agent + 工具 Agent”显式解释为 human-planner 与 tool-agent 的交接，并留下可复核的协作事件。</p><span class="pill">协作模拟</span><span class="pill">轨迹审计</span></article>
+    <article class="card"><div class="num">04</div><h3>SkillMemory</h3><p>从完成的复杂行为中提取触发词、前置条件、步骤摘要和工具画像；按员工隔离、原子写入、检索后适配。</p><span class="pill">程序化记忆</span><span class="pill">流程复用</span></article>
+  </div>
+
+  <h2>ICML 2026 证据面</h2>
+  <p class="small">数据源：<a href="https://tsrigo.github.io/ICML2026-Guide-CN/">ICML 2026 论文中文导读</a>（页面标注为 6567 篇中稿）。计数用于判断研究密度和叙事风险，不代表录用概率。</p>
+  <div class="grid3">
+    <article class="card"><div class="num">65</div><h3>Agent 与工具使用</h3><p>已有工作覆盖工作流重构、技能合成、程序化记忆、工作流图和工具噪声评测。单独提出“增加 skill”不足以构成主贡献。</p></article>
+    <article class="card"><div class="num">103</div><h3>多智能体</h3><p>已有层级决策、架构搜索、过程验证、协作技能复用和 MAS 安全研究。需要把“组织结构”变成可测量的生成机制。</p></article>
+    <article class="card"><div class="num">140 + 125</div><h3>Security / Safety</h3><p>多步攻击检测、长时攻击、记忆投毒、多轮工具安全和多智能体架构安全都已出现。论文应把安全作为 Harness 的约束和观测维度。</p></article>
+  </div>
+
+  <h2>Research road：文献如何改变方案</h2>
+  <div class="road"><span class="stage">T0</span><h3>已有 Morpheus：全员计划 + 两 Agent 执行</h3><p>仓库原始链路是全员 Workforce 会议、统一周目标、个人日计划，再由员工执行器按事件调用工具。优点是已有真实的日志和攻击注入路径；限制是组织信息流、路由策略和流程记忆没有被显式建模。</p><p><span class="status open">基线</span> 论文问题被定义为“怎样让行为更真实”，而不是“怎样再增加一个 Agent”。</p></div>
+  <div class="road"><span class="stage">T1</span><h3>从 TIPEX / Multi² / MAS-Orchestra 收敛出“编排是方法”</h3><p><a href="https://openreview.net/forum?id=2hvtgaftIt">A Two-Tier Perspective on Inference-Time Parallelism</a> 说明任务层与结构层编排应被统一控制；<a href="https://openreview.net/forum?id=H0tMEp0ZmO">Multi²</a> 说明层级分工可以降低长期交互中的目标漂移；<a href="https://openreview.net/forum?id=3fGXBm4c3S">MAS-Orchestra</a> 强调 MAS 效果依赖任务结构、验证协议和调度器。</p><p><span class="status done">方向更新</span> 把“部门负责人 → 部门 → 个人”定义为组织层的结构化编排，并把部门依赖写进中间产物。</p></div>
+  <div class="road"><span class="stage">T2</span><h3>从 AgentXRay / GraphFlow / MAS-ProVe 加入可解释工作流</h3><p><a href="https://openreview.net/forum?id=EPL2YoeGow">AgentXRay</a> 将黑箱 Agent 近似为可解释工作流；<a href="https://openreview.net/forum?id=3pLFgUQLzJ">GraphFlow</a> 用图表示操作单元和工作流状态；<a href="https://openreview.net/forum?id=UoM3G7nKr0">MAS-ProVe</a> 警告多智能体过程验证有高方差和上下文成本。</p><p><span class="status done">方向更新</span> 不把最终答案当作唯一产物，新增层级会议 minutes、行为路由 CSV、human–agent handoff 事件和技能文件，供轨迹级评测与复现使用。</p></div>
+  <div class="road"><span class="stage">T3</span><h3>从 Agentic Proposing / Meta Context / ProcMEM / COMAD 约束“skill”定义</h3><p><a href="https://openreview.net/forum?id=bLbBxDTjbq">Agentic Proposing</a> 关注组合式技能合成；<a href="https://openreview.net/forum?id=P1jHroBS5E">Meta Context Engineering via Agentic Skill Evolution</a> 关注技能与上下文的协同进化；<a href="https://openreview.net/forum?id=9kJQjx2B80">ProcMEM</a> 将技能写成触发、执行和结束条件；<a href="https://openreview.net/forum?id=5kteupXJ7B">COMAD</a> 关注协作技能分区与复用。</p><p><span class="status done">方向更新</span> SkillMemory 只存前置条件、步骤摘要、工具画像和来源事件，按员工隔离并原子写入，避免把不透明的全文记忆冒充为程序化技能。</p></div>
+  <div class="road"><span class="stage">T4</span><h3>从 Architecture Matters / AgentLAB / CausalTrace / ToolShield 引入安全闭环</h3><p><a href="https://openreview.net/forum?id=Jk4zLorDUx">Architecture Matters for Multi-Agent Security</a> 指出角色分配、交互拓扑和记忆机制共同决定攻击面；<a href="https://openreview.net/forum?id=Bb0pQqsiad">AgentLAB</a> 将长时攻击作为独立评测问题；<a href="https://openreview.net/forum?id=Kb2m543agS">Causal Detection of Multi-Step LLM Agent Attacks</a> 关注顺序结构和反事实因果；<a href="https://openreview.net/forum?id=iSuqYRmG4A">ToolShield</a> 说明多轮工具风险需要经验驱动的防御。</p><p><span class="status next">待验证</span> 需要在论文实验中证明：层级信息流、技能复用和路由决策能产生不同的攻击面与可解释安全信号，而不是只增加日志数量。</p></div>
+
+  <h2>文献 → 创新点 → 证据</h2>
+  <div class="table-wrap"><table class="table"><thead><tr><th>参考文献</th><th>吸收的启发</th><th>更新到 Morpheus-Harness 的程度</th><th>还缺什么</th></tr></thead><tbody>
+    <tr><td><a href="https://openreview.net/forum?id=2hvtgaftIt">TIPEX</a> · <a href="https://openreview.net/forum?id=H0tMEp0ZmO">Multi²</a></td><td>分离高层目标与低层动作，控制长期漂移。</td><td><span class="status done">已实现</span> head council 与 department meeting 两级；human-planner 与 tool-agent 两级。</td><td>需要跨周目标一致性和依赖满足率实验。</td></tr>
+    <tr><td><a href="https://openreview.net/forum?id=EPL2YoeGow">AgentXRay</a> · <a href="https://openreview.net/forum?id=3pLFgUQLzJ">GraphFlow</a></td><td>工作流应可重构、可解释、可管理。</td><td><span class="status done">已实现</span> 保存 hierarchy、minutes、behavior_policy 和 handoff 轨迹。</td><td>需要工作流相似度、轨迹压缩率和复现性指标。</td></tr>
+    <tr><td><a href="https://openreview.net/forum?id=9kJQjx2B80">ProcMEM</a> · <a href="https://openreview.net/forum?id=P1jHroBS5E">Meta Context</a></td><td>技能应包含触发、执行、复用和适配，而非只做文本检索。</td><td><span class="status done">原型已实现</span> SkillMemory 提供 trigger terms、precondition、steps、tool profile 和 uses。</td><td>需要成功率门控、技能污染实验和跨员工迁移实验。</td></tr>
+    <tr><td><a href="https://openreview.net/forum?id=Jk4zLorDUx">Architecture Matters</a></td><td>角色、拓扑、记忆是 MAS 攻击面。</td><td><span class="status open">机制已暴露</span> 层级和记忆均成为显式可替换模块。</td><td>需要证明不同架构产生可区分的安全/效用曲线。</td></tr>
+    <tr><td><a href="https://openreview.net/forum?id=Kb2m543agS">CausalTrace</a> · <a href="https://openreview.net/forum?id=fE4urn9hyM">CausalArmor</a></td><td>多步攻击要分析信息影响的顺序与因果来源。</td><td><span class="status next">设计阶段</span> 先保留 stage、decision、skill provenance 等事件字段，为后续因果分析提供观测。</td><td>尚未实现因果检测器；论文需加入反事实重放或因果归因实验。</td></tr>
+    <tr><td><a href="https://openreview.net/forum?id=Bb0pQqsiad">AgentLAB</a> · <a href="https://openreview.net/forum?id=iSuqYRmG4A">ToolShield</a></td><td>单轮安全指标不足，需要长时、多轮、工具级评测。</td><td><span class="status next">实验阶段</span> 现有攻击场景可作为标注轨迹来源，新增路由和 skill 事件可用于切片。</td><td>需构建安全基准协议、攻击预算、漏报/误报和效用指标。</td></tr>
+    <tr><td><a href="https://openreview.net/forum?id=ORVJCJczoG">AgentNoiseBench</a> · <a href="https://openreview.net/forum?id=Q1twBCjpUt">Vulnerable Agent Identification</a></td><td>工具反馈噪声和易损 Agent 会改变群体轨迹。</td><td><span class="status next">实验阶段</span> IntentGate 为插入工具噪声与成员失效提供了单独的路由观测点。</td><td>需做噪声强度、成员失效和恢复能力的系统扫描。</td></tr>
+  </tbody></table></div>
+
+  <h2>论文应检验的科学命题</h2>
+  <div class="formula">Fidelity = f(organizational dependency, temporal consistency, interaction realism, skill reuse)<br>Safety = g(attack success, detection delay, false refusal, trace provenance)</div>
+  <div class="grid3" style="margin-top:14px">
+    <article class="card"><h3>Q1 · 组织真实性</h3><p>层级规划是否提高跨部门依赖满足率、日程冲突可解释性、角色–任务一致性和行为转移的长尾结构？</p><p class="small">基线：全员会议、随机部门、无依赖个人计划。</p></article>
+    <article class="card"><h3>Q2 · Harness 效率</h3><p>IntentGate 是否减少简单事件的模型调用和延迟，同时保持复杂任务的完成率与轨迹质量？</p><p class="small">指标：LLM calls、token、latency、task success、route accuracy。</p></article>
+    <article class="card"><h3>Q3 · 安全与复用</h3><p>SkillMemory 是否提高重复流程的稳定性，又是否扩大了记忆投毒或权限漂移的攻击面？</p><p class="small">必须同时报告复用收益、污染敏感性和来源可追溯率。</p></article>
+  </div>
+
+  <h2>必须完成的实验包</h2>
+  <div class="grid3">
+    <article class="card"><h3>消融</h3><p>Global meeting / Hierarchical planning；always-agent / IntentGate；no skill / SkillMemory；single-agent / human–agent handoff。</p></article>
+    <article class="card"><h3>真实性评测</h3><p>时间间隔与 burstiness、跨成员通信图、计划–执行偏差、角色–工具互信息、跨日记忆一致性、下游 insider-threat detector 的 train/test 效果。</p></article>
+    <article class="card"><h3>安全评测</h3><p>离线 sandbox、合成身份、工具 allowlist、attack budget、长时攻击、间接注入、记忆污染、良性任务误拒绝；所有结果保留 provenance。</p></article>
+  </div>
+
+  <h2>当前仓库实现</h2>
+  <div class="table-wrap"><table class="table"><thead><tr><th>文件</th><th>作用</th><th>状态</th></tr></thead><tbody>
+    <tr><td><a href="../src/hierarchical_planning.py"><span class="mono">src/hierarchical_planning.py</span></a></td><td>从公司配置推断部门，稳定选择部门负责人，构造两级 planning prompt。</td><td><span class="status done">已实现</span></td></tr>
+    <tr><td><a href="../src/hierarchical_meeting.py"><span class="mono">src/hierarchical_meeting.py</span></a> · <span class="mono">meeting_for_weekly_goal_auto.py</span></td><td>head council → department meetings，并写出 downstream 仍可读取的 <span class="mono">meeting_response.csv</span>；<span class="mono">config.hierarchical_planning=False</span> 可恢复全员会议作为消融基线。</td><td><span class="status done">已接入</span></td></tr>
+    <tr><td><a href="../src/behavior_router.py"><span class="mono">src/behavior_router.py</span></a></td><td>简单 session transition 与复杂 agent behavior 的快速 intent gate；输出 category/action/confidence/reason。</td><td><span class="status done">已接入正常/攻击执行</span></td></tr>
+    <tr><td><a href="../src/task.py"><span class="mono">src/task.py</span></a> · <span class="mono">src/skill_memory.py</span></td><td>显式 human-planner → tool-agent 合约；技能按员工存储、检索、原子更新，并记录 handoff。</td><td><span class="status done">原型已实现</span></td></tr>
+    <tr><td><span class="mono">behavior_policy.csv</span> · <span class="mono">harness_events.jsonl</span></td><td>为行为路由、技能复用和协作交接提供可审计轨迹。</td><td><span class="status done">运行时生成</span></td></tr>
+  </tbody></table></div>
+
+  <div class="note good" style="margin-top:18px"><b>安全边界：</b>默认保持离线工具模式；技能文件只保存紧凑的流程元数据，不保存凭据和工具参数；论文实验应使用合成身份与沙箱。真正的 ICML 贡献需要在此工程原型之上补齐可重复的基准、消融、统计显著性和安全失败分析。</div>
+  <div class="footer">最后更新：2026-11-18 · 参考总入口：<a href="https://tsrigo.github.io/ICML2026-Guide-CN/">ICML 2026 Guide CN</a> · 本页面是研究计划与实现状态记录，不承诺 ICML 2027 录用。</div>
+</main>
+</body>
+</html>

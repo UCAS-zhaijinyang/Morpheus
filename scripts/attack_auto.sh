@@ -3,8 +3,8 @@
 #
 # SPDX-License-Identifier: MIT
 # ==============================================================================
-CONTAINER_PID=$(docker inspect -f '{{.State.Pid}}' chimera)
-CONTAINER_ID=$(docker ps -a | grep chimera | awk '{print $1}')
+CONTAINER_PID=$(docker inspect -f '{{.State.Pid}}' morpheus)
+CONTAINER_ID=$(docker ps -a | grep morpheus | awk '{print $1}')
 OUTPUT_DIR="/data/Logs"
 
 env_command=""
@@ -19,11 +19,11 @@ fi
 
 attacker_id="his-1"
 
-# attacks=("gen_attack_2" "gen_attack_3" "gen_attack_4" "gen_attack_5" "gen_attack_6" "gen_attack_7" "gen_attack_8" "gen_attack_9" "gen_attack_10" "gen_attack_11" "gen_attack_12" "multi_attack_1" "multi_attack_2" "multi_attack_3")
+# Primary threat families for the current research experiments.
+attacks=("threat_ai_data_boundary" "threat_cross_department_workflow" "threat_skill_memory_contamination")
 
-attacks=("multi_attack_2")
-
-# attacks=("gen_attack_1" "gen_attack_2" "gen_attack_3" "gen_attack_4" "gen_attack_5" "gen_attack_6" "gen_attack_7" "gen_attack_8" "gen_attack_9" "gen_attack_10" "gen_attack_11" "gen_attack_12" "multi_attack_1" "multi_attack_2" "multi_attack_3")
+# Legacy gen_attack_* and multi_attack_* runtime files were removed during
+# workspace cleanup. Current runs use the three primary threat families above.
 
 for attack_id in ${attacks[@]}; do
     echo "======= Running for attack $attack_id ========="
@@ -39,7 +39,7 @@ for attack_id in ${attacks[@]}; do
     tmux send -t "pcap" "$pcap_record_cmd" ENTER
 
         # run the simulation
-        docker exec chimera bash -c "source /data/Chimera/.venv/bin/activate && python /data/Chimera/demo/daily_execution_auto_attack.py --attacker $attacker_id --attid $attack_id"
+        docker exec morpheus bash -c "source /data/Morpheus/.venv/bin/activate && python /data/Morpheus/src/daily_execution_auto_attack.py --attacker $attacker_id --attid $attack_id"
 
         # wait for the simulation to finish
         sleep 1

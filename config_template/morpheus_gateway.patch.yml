@@ -1,0 +1,34 @@
+# OpenAI-compatible route for private multi-model gateways.
+- id: llm-deepseek
+  disabled: true
+
+- id: llm-pi-ai
+  config:
+    providers:
+      morpheus-gateway:
+        apiKeyEnv: DEEPSEEK_API_KEY
+        api: openai-completions
+        baseURL: !!js process.env.MORPHEUS_GATEWAY_BASE_URL
+        compat:
+          supportsStore: false
+          supportsDeveloperRole: false
+          supportsReasoningEffort: true
+          supportsUsageInStreaming: true
+          supportsFinishReason: true
+          maxTokensField: max_tokens
+        models:
+          - id: deepseek-v4.1-flash
+            name: DeepSeek v4.1 Flash
+            maxTokens: 32768
+            reasoningEfforts:
+              max: max
+          - id: gpt-6.1-sol
+            name: GPT 6.1 Sol
+            maxTokens: 32768
+            reasoningEfforts:
+              medium: medium
+          - id: gpt-6.2-sol
+            name: GPT 6.2 Sol
+            maxTokens: 32768
+            reasoningEfforts:
+              medium: medium

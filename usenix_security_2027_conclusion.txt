@@ -1,0 +1,9 @@
+7 CONCLUSION
+
+Enterprise agents expand the state that an insider-threat monitor must explain. An enterprise action may depend on a human principal, an agent and runtime identity, delegated authority, upstream content or memory, organizational purpose, and a sequence of tool calls. Morpheus-Harness models this activity as an organization-constrained trajectory. It propagates hierarchical goals and department dependencies to employee plans, records human-agent handoffs and provenance metadata, and expresses AI-mediated data-boundary abuse, cross-department workflow abuse, and skill or memory contamination within one execution substrate. Its matched-trajectory protocol fixes the organization, tools, schedules, and initial state, changes one intervention, and measures authorization, locality, persistence, provenance, and attribution.
+
+中文翻译
+
+7 结论
+
+企业 Agent 扩展了内部威胁监测需要解释的状态空间。一次企业操作可能同时依赖人类主体、Agent 与运行时身份、委托权限、上游内容或记忆、组织目的以及连续的工具调用。Morpheus-Harness 将这类活动建模为受组织约束的行为轨迹，把层级目标和部门依赖传播到员工计划，记录人-Agent 交接与来源元数据，并在同一执行框架中表达 AI 中介的数据边界滥用、跨部门流程权限滥用以及 Skill/Memory 污染。其成对轨迹协议固定组织、工具、日程和初始状态，只改变一个干预变量，再评估授权一致性、变化局部性、持续性、来源完整性和归因能力。

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Morpheus-Harness · ICML 2027 Research Road v3</title>
+  <style>
+    :root{--ink:#182235;--muted:#5c6879;--line:#dbe3ed;--bg:#f5f7fb;--card:#fff;--blue:#1d4ed8;--navy:#172554;--cyan:#0e7490;--green:#15803d;--amber:#a16207;--red:#b91c1c}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.72 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}.wrap{max-width:1180px;margin:auto;padding:32px 22px 72px}
+    .hero{padding:40px 44px;color:#fff;border-radius:22px;background:linear-gradient(135deg,var(--navy),var(--cyan));box-shadow:0 18px 46px #0f172a25}.eyebrow{font-size:12px;letter-spacing:.14em;opacity:.75}.hero h1{font-size:35px;line-height:1.25;margin:10px 0 13px}.hero p{max-width:950px;color:#e0f2fe;margin:8px 0}.tag{display:inline-block;margin:8px 6px 0 0;padding:3px 10px;border:1px solid #ffffff55;border-radius:99px;font-size:12px}
+    h2{font-size:24px;margin:38px 0 13px}h3{font-size:18px;margin:0 0 6px}.small{font-size:13px;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card,.note,.road{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:19px;box-shadow:0 4px 14px #17203309}.card p,.note p,.road p{color:var(--muted);margin:7px 0}.number{font-size:27px;color:var(--blue);font-weight:800;line-height:1}.warn{border-left:4px solid var(--amber);background:#fffbeb}.good{border-left:4px solid var(--green);background:#f0fdf4}.bad{border-left:4px solid var(--red);background:#fef2f2}.pill,.status{font-size:12px;font-weight:700;border-radius:99px;padding:2px 8px;white-space:nowrap}.pill{display:inline-block;background:#e0f2fe;color:#075985;margin:2px 4px 2px 0}.done{background:#dcfce7;color:#166534}.next{background:#fef3c7;color:#92400e}.open{background:#fee2e2;color:#991b1b}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line)}.table th,.table td{text-align:left;vertical-align:top;padding:11px 12px;border-bottom:1px solid var(--line)}.table th{background:#eff6ff;color:#1e3a8a;font-size:13px}.table tr:last-child td{border-bottom:0}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.mono{font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#f1f5f9;border-radius:6px;padding:2px 5px}.formula{background:#0f172a;color:#dbeafe;border-radius:10px;padding:16px 18px;font:14px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace;overflow:auto}.road{position:relative;margin:12px 0;padding-left:72px}.road:before{content:"";position:absolute;left:29px;top:23px;width:14px;height:14px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 5px #dbeafe}.road:after{content:"";position:absolute;left:35px;top:39px;bottom:-27px;width:2px;background:#bfdbfe}.road:last-child:after{display:none}.stage{position:absolute;left:12px;top:50px;color:var(--blue);font-size:12px;font-weight:800;writing-mode:vertical-rl}.road ul{margin:7px 0 0 18px;padding:0}.road li{margin:3px 0}.footer{margin-top:36px;border-top:1px solid var(--line);padding-top:15px;color:var(--muted);font-size:13px}@media(max-width:900px){.grid4{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr 1fr}}@media(max-width:600px){.wrap{padding:18px 12px 50px}.hero{padding:27px 23px}.hero h1{font-size:28px}.grid,.grid4{grid-template-columns:1fr}.road{padding-left:58px}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow">Morpheus · ICML 2027 research road · v3</div>
+    <h1>OrgTraj-Harness：组织约束下的企业 Agent 行为轨迹生成</h1>
+    <p>目标不是证明“多加几个 Agent 会更真实”，而是提出一个新的机器学习问题：给定组织图、角色权限、部门目标、工具集合和历史流程，如何生成长期、可审计、具有组织因果一致性的 Agent 行为轨迹，并通过反事实干预模拟内部威胁。</p>
+    <span class="tag">Organizational Behavior Trajectory Generation</span><span class="tag">causal consistency</span><span class="tag">provenance-constrained skills</span><span class="tag">counterfactual insider threat</span>
+  </section>
+
+  <div class="note bad" style="margin-top:18px"><b>创新门槛结论：</b>第一版“层级规划 + 路由 + human–agent + skill”仍然只是已有 Agent 技术的组合，单论创新不够 ICML。第二版只有在把它们统一为 OBTG 问题、提出结构化轨迹控制方法，并把“反事实一致性”作为可证伪性质后，才达到 ICML 级创新方向的合理门槛。下面的方案是目标版本；当前仓库代码只是其中的原型。</div>
+
+  <h2>最终研究问题</h2>
+  <div class="formula">Input: organization graph G, role/permission profiles P, goal hierarchy H, tools U, memory M, scenario intervention I<br>Output: trajectory τ = {(org_state_t, intent_t, mode_t, handoff_t, tool_event_t)}<br>Constraint: τ must preserve organizational dependencies, authority boundaries, temporal coherence, and provenance under interventions.</div>
+  <p>论文的主问题应写成：<b>如何生成具有组织因果一致性的企业 Agent 行为轨迹？</b>内部威胁不是另一个孤立生成器，而是对同一个 Harness 施加“恶意意图、权限误用、跨部门信息流或记忆污染”干预后得到的反事实轨迹。</p>
+
+  <h2>研究问题、核心方法和工程模块必须分开</h2>
+  <div class="note bad"><b>重要澄清：</b>目前“层级会议 + Router + 双 Agent + SkillMemory”仍然是一个工程组合。把它命名为 Harness 不会自动产生科学创新。真正的论文对象是“组织约束如何决定企业 Agent 行为轨迹”；这些模块只是实现和消融这个对象的机制。</div>
+  <div class="table-wrap"><table class="table"><thead><tr><th>层级</th><th>论文中要回答的问题</th><th>Morpheus 对应内容</th></tr></thead><tbody>
+    <tr><td>科学问题</td><td>给定组织状态和干预，行为轨迹应如何生成和变化？</td><td><span class="mono">P(τ | G, P, H, S, U, M, I)</span></td></tr>
+    <tr><td>核心方法</td><td>如何把组织约束传播到轨迹生成，并保证权限、依赖和反事实性质？</td><td>组织约束图 + 约束条件下的轨迹生成/验证</td></tr>
+    <tr><td>工程机制</td><td>如何在现有 Morpheus 中实现这个方法？</td><td>分层会议、风险路由、human–Agent handoff、skill memory</td></tr>
+    <tr><td>科学证据</td><td>这些约束是否真的改变了可测量的行为性质？</td><td>结构指标、反事实干预、真实日志校准和下游任务</td></tr>
+  </tbody></table></div>
+  <p>不需要先证明“所有真实员工都会这样行动”。需要做的是：对权限和组织约束给出可验证的形式化性质或有限保证，再用实验检验分布真实性、条件行为真实性和反事实一致性。</p>
+
+  <h2>核心方法中的三个机制</h2>
+  <div class="grid">
+    <article class="card"><div class="number">01</div><h3>Organizational Constraint Graph</h3><p>把组织层级、部门依赖、角色权限、信息可见性和时间目标统一表示为约束图。部门负责人传递的不是一段自然语言会议记录，而是带有依赖、权限和不确定性的 constraint packet。</p><span class="pill">新问题形式化</span><span class="pill">组织因果</span></article>
+    <article class="card"><div class="number">02</div><h3>Risk–Complexity Trajectory Controller</h3><p>在每个事件边界估计复杂度、风险和不确定性，决定走状态机、计划–执行 Agent 或人工/Agent 交接。门控器应从历史轨迹学习并允许 abstain，而不是只靠关键词规则。</p><span class="pill">自适应控制</span><span class="pill">成本–风险权衡</span></article>
+    <article class="card"><div class="number">03</div><h3>Provenance-Constrained Skill Automaton</h3><p>将 skill 表示成带触发条件、前置/后置条件、授权范围、工具边和来源轨迹的可执行子图。复用前必须通过权限和状态检查，避免把记忆检索误称为程序化技能。</p><span class="pill">结构化记忆</span><span class="pill">安全来源</span></article>
+  </div>
+
+  <h2>方法不能停留在 prompt：最小算法定义</h2>
+  <div class="formula">c_t = Propagate_φ(G, H_t, P)                         organizational constraint packet<br>(m_t, q_t) = Retrieve_ψ(s_t, M_i, c_t)                 skill + provenance/risk state<br>r_t = Gate_θ(s_t, c_t, m_t) ∈ {state, plan-execute, handoff, abstain}<br>a_t ~ π_ω(· | s_t, c_t, m_t, r_t),  subject to  Auth(P_i, a_t)=1<br>L = L_trajectory + αL_constraint + βL_intervention + γL_safety + λL_cost</div>
+  <p>其中 <span class="mono">Propagate</span> 把组织目标和依赖传播到员工可见的约束包；<span class="mono">Retrieve</span> 返回带来源和风险状态的 skill；<span class="mono">Gate</span> 决定是否调用复杂 Agent；<span class="mono">Auth</span> 是硬约束。论文必须把这些算子实现成可训练、可校准或可优化的对象，不能只用自然语言 prompt 的名字替代它们。</p>
+
+  <h2>human–Agent 在最终叙事中的位置</h2>
+  <div class="note good"><b>它是机制，不是独立主贡献。</b> human-planner 负责模拟员工意图、优先级、犹豫和约束，tool-agent 负责执行工具动作；二者之间的 handoff 是轨迹中的显式状态。这样可以解释复杂行为为何会出现计划–执行偏差、工具选择、等待和重新规划，但不会把已有的双 Agent 结构包装成新算法。</div>
+
+  <h2>内部威胁的创新性：反事实轨迹，而不是攻击脚本</h2>
+  <div class="grid4">
+    <article class="card"><h3>同一组织状态</h3><p>固定组织图、角色、日程和工具权限。</p></article>
+    <article class="card"><h3>单一干预</h3><p>只改变内部意图、记忆、权限或信息流。</p></article>
+    <article class="card"><h3>双轨迹输出</h3><p>得到 benign / insider 两条可对齐轨迹。</p></article>
+    <article class="card"><h3>可解释标签</h3><p>标签来自干预和因果来源，而非表面关键词。</p></article>
+  </div>
+  <p>这会把论文从“生成攻击日志”提升为“研究组织结构、Agent 记忆和权限变化如何改变威胁轨迹”。它也能降低检测器学到攻击脚本表面模式的风险。</p>
+
+  <h2>企业真实性的锚点</h2>
+  <div class="grid">
+    <article class="card"><h3>组织锚点</h3><p>用公开的企业活动、邮件和认证日志作为弱监督约束，校准事件频率、时间间隔和通信图；不声称这些日志等同于真实企业全量行为。</p></article>
+    <article class="card"><h3>行为锚点</h3><p>用工具调用序列、任务切换、等待、回复和重规划作为可观察变量，避免只用 LLM 生成文本的相似度评价。</p></article>
+    <article class="card"><h3>安全锚点</h3><p>在合成身份和离线沙箱中注入单一干预，检查轨迹变化是否符合权限、组织依赖和技能来源，而不是凭空生成“攻击故事”。</p></article>
+  </div>
+
+  <h2>“更真实”不是单一指标，而是四组可检验性质</h2>
+  <div class="grid4">
+    <article class="card"><h3>分布真实性</h3><p>时间间隔、工作时段、工具频率、任务切换、通信图和长尾事件接近真实企业日志。</p></article>
+    <article class="card"><h3>条件行为真实性</h3><p>给定员工角色、日程、部门目标和工具状态后，下一步行为与上下文相容。</p></article>
+    <article class="card"><h3>组织一致性</h3><p>行为满足权限、部门依赖、信息可见性、时间窗口和工具状态转移。</p></article>
+    <article class="card"><h3>反事实一致性</h3><p>只改变一个目标、权限、记忆或信息流变量时，轨迹变化局部、可解释且可追溯。</p></article>
+  </div>
+  <div class="formula">Trajectory Quality = { distributional fidelity, conditional fidelity, organizational consistency, counterfactual consistency, downstream utility }</div>
+  <p>论文不应声称“生成了最真实的员工行为”，而应报告这些性质。真实性是需要验证的结果，不是方法名称本身。</p>
+
+  <h2>框架评测与生成数据集评测是两层证据</h2>
+  <p>生成的企业行为数据集是框架的主要科学产物，但不能只用下游检测器的分数证明框架有效。第一层直接评测轨迹生成框架，第二层评测生成数据集是否能支持真实企业安全任务。</p>
+  <div class="grid">
+    <article class="card"><h3>直接评测框架</h3><p>检查权限、组织依赖、时间一致性、反事实 locality、轨迹分布和生成成本。</p></article>
+    <article class="card"><h3>间接评测数据集</h3><p>用合成轨迹训练内部威胁检测器，在真实日志上测试；再做真实训练、合成测试的反向迁移。</p></article>
+    <article class="card"><h3>必要的交叉验证</h3><p>防止模型只学到合成数据的表面攻击模式；必须做跨组织、跨工具和跨时间测试。</p></article>
+  </div>
+  <p>类比图像生成：既要评测生成图像本身的质量和可控性，也要评测它是否能帮助下游模型完成真实任务。对 OrgTraj，数据集 utility 不能替代轨迹级验证。</p>
+
+  <h2>企业内部威胁评测：现成 benchmark 只能做参照</h2>
+  <p>下面的 Agent benchmark 不是论文主评测，因为你的目标不是证明 Morpheus 是通用 Agent。它们最多用于检查某个局部机制没有退化。主评测必须来自企业行为数据、内部威胁场景和自建的 OrgTrajBench。</p>
+  <div class="table-wrap"><table class="table"><thead><tr><th>层级</th><th>经典/前沿 benchmark</th><th>适合测什么</th><th>对 OrgTraj 的限制</th></tr></thead><tbody>
+    <tr><td>通用长程 Agent</td><td><a href="https://arxiv.org/abs/2308.03688">AgentBench</a> · <a href="https://arxiv.org/abs/2307.13854">WebArena</a> · <a href="https://arxiv.org/abs/2311.12983">GAIA</a> · <a href="https://arxiv.org/abs/2404.07972">OSWorld</a></td><td>多步规划、工具调用、网页/电脑环境中的完整轨迹和任务成功。</td><td>没有组织层级、权限传播和员工间依赖。</td></tr>
+    <tr><td>用户–Agent–工具</td><td><a href="https://arxiv.org/abs/2406.12045">τ-bench</a> · <a href="https://openreview.net/forum?id=OC2z7iSQKa">τ²-Bench</a> · <a href="https://openreview.net/forum?id=vmT3p2w83l">MCP-Persona</a></td><td>用户状态、工具 API、双控制、个性化工具和多轮交互。</td><td>能测 handoff 与工具边界，但不表示组织目标传播。</td></tr>
+    <tr><td>长期记忆/流程复用</td><td><a href="https://openreview.net/forum?id=GfQI92bpC1">AMA-Bench</a> · <a href="https://openreview.net/forum?id=JHYmxqS9Jv">MEMORYARENA</a></td><td>跨会话记忆、历史经验对未来动作的影响、长程流程复用。</td><td>缺少角色权限、部门依赖和内部威胁干预。</td></tr>
+    <tr><td>噪声与协作</td><td><a href="https://openreview.net/forum?id=ORVJCJczoG">AgentNoiseBench</a> · <a href="https://openreview.net/forum?id=mii3Lo7N3W">CollabBench</a> · <a href="https://openreview.net/forum?id=3fGXBm4c3S">MASBENCH</a></td><td>工具反馈噪声、不同协作者、群体编排和多 Agent 过程。</td><td>协作关系通常是任务内的，不是企业组织结构。</td></tr>
+    <tr><td>安全/长时攻击</td><td><a href="https://arxiv.org/abs/2406.13352">AgentDojo</a> · <a href="https://openreview.net/forum?id=Bb0pQqsiad">AgentLAB</a> · <a href="https://openreview.net/forum?id=iSuqYRmG4A">MT-AgentRisk</a> · <a href="https://openreview.net/forum?id=Kb2m543agS">CausalTrace</a></td><td>间接注入、记忆污染、长时攻击、多轮工具风险和攻击因果。</td><td>主要评估防御或攻击成功率，不生成组织内生的员工轨迹。</td></tr>
+    <tr><td>企业行为锚点</td><td>CERT Insider Threat · LANL authentication/activity logs · Enron email</td><td>校准时间间隔、通信图、登录行为和异常检测任务。</td><td>这些是行为/安全数据集，不是 Agent benchmark；通常缺少完整意图和工具执行状态。</td></tr>
+  </tbody></table></div>
+  <div class="note warn" style="margin-top:14px"><b>使用边界：</b>不需要为了论文完整跑 AgentBench、WebArena、OSWorld、GAIA 等通用 benchmark。最多选择一个 τ²-Bench 或 AgentNoiseBench 做局部 sanity check；论文真正的主 benchmark 是 <b>OrgTrajBench</b>，并用 CERT Insider Threat、LANL authentication/process/network logs 和 Enron email 做行为分布与下游检测校准。</div>
+
+  <h2>逐小步实验阶梯：每一步先问一个问题</h2>
+  <div class="table-wrap"><table class="table"><thead><tr><th>阶段</th><th>问题</th><th>最小实验</th><th>关键指标</th><th>停止/升级条件</th></tr></thead><tbody>
+    <tr><td>Q0 直觉检查</td><td>不使用 LLM，组织约束是否有明确因果后果？</td><td>3 部门、5 名员工的 toy graph；改变一个 manager goal、permission 或 skill。</td><td>受影响节点集合、未授权动作数、约束满足率。</td><td>若干预不能产生可预测差异，放弃该约束或重新定义。</td></tr>
+    <tr><td>Q1 组织层级</td><td>分层规划是否比全员规划产生更合理的依赖传播？</td><td>Global meeting vs hierarchical meeting；固定同一模型、目标和员工画像。</td><td>依赖满足率、跨部门冲突、角色–任务一致性、目标干预 locality。</td><td>若只提高文本质量而不改变结构指标，不把它写成主创新。</td></tr>
+    <tr><td>Q2 快速路由</td><td>何时值得调用复杂 Agent？</td><td>从 OrgTrajBench 的企业事件中标注 simple/complex/risky；比较 always-agent、规则 gate、可校准 gate。</td><td>route accuracy、abstention quality、LLM calls、token、latency、企业任务失败率。</td><td>若节省成本伴随复杂任务质量下降，调整为风险约束门控。</td></tr>
+    <tr><td>Q3 Skill 复用</td><td>流程记忆带来的是复用还是错误惯性？</td><td>在同一员工跨日的企业任务序列中比较 no-memory、episodic retrieval、skill automaton。</td><td>跨日成功率、步骤数、工具错误、复用率、skill contamination rate。</td><td>若复用只提升 recall 而不提升动作，不能称为 procedural skill。</td></tr>
+    <tr><td>Q4 Handoff</td><td>human-planner → tool-agent 是否改变企业行为轨迹？</td><td>在同一组织、员工、任务和工具状态下比较单 Agent、隐式双 Agent、显式 handoff。</td><td>计划–执行偏差、干预次数、恢复时间、沟通事件、任务完成和日志可解释性。</td><td>若 handoff 只增加日志，不改善解释性或恢复能力，降为实现细节。</td></tr>
+    <tr><td>Q5 反事实威胁</td><td>同一组织状态下的单一干预是否能产生可解释的 insider 轨迹？</td><td>固定 benign trajectory 的组织图、角色和工具，只改变意图、权限、记忆或信息流。</td><td>轨迹差异的因果 locality、攻击成功率、检测延迟、误报率、来源可追溯率。</td><td>若检测器只靠攻击关键词，换域测试必须失败并触发数据重构。</td></tr>
+    <tr><td>Q6 统一方法</td><td>组织约束生成是否比模块独立拼接更能提升轨迹性质？</td><td>完整 factorial ablation：constraint graph × gate × skill automaton × counterfactual pairing。</td><td>轨迹性质向量、成本、安全、下游检测泛化和统计置信区间。</td><td>若只有模块各自提升而没有约束交互效应，论文应定位为系统工作。</td></tr>
+  </tbody></table></div>
+
+  <h2>必须成立的三个因果性质</h2>
+  <div class="grid">
+    <article class="card"><h3>目标传播一致性</h3><p>对某部门目标做 <span class="mono">do(goal_d ← goal'_d)</span>，主要改变该部门及其依赖后继的轨迹，独立部门不应无理由同步漂移。</p></article>
+    <article class="card"><h3>权限边界一致性</h3><p>对员工做 <span class="mono">do(permission_i ← 0)</span>，应减少未经授权的工具事件并触发替代流程，而不是让 Agent 通过自然语言绕过限制。</p></article>
+    <article class="card"><h3>记忆来源一致性</h3><p>移除、过期或污染某 skill，应改变复用、验证和重新规划行为，并能追溯到来源事件；不能静默扩散到无关员工。</p></article>
+  </div>
+
+  <h2>与 ICML 2026 中稿的差异化位置</h2>
+  <p class="small">参考页面：<a href="https://tsrigo.github.io/ICML2026-Guide-CN/">ICML 2026 Guide CN</a>。该页面包含 6567 篇中稿；Agent 与工具使用、多智能体、安全防御、安全分别标注 65、103、140、125 篇。</p>
+  <div class="table-wrap"><table class="table"><thead><tr><th>已有工作</th><th>已有贡献</th><th>本项目不能重复的地方</th><th>本项目必须新增的对象</th></tr></thead><tbody>
+    <tr><td><a href="https://openreview.net/forum?id=H0tMEp0ZmO">Multi²</a> · <a href="https://openreview.net/forum?id=2hvtgaftIt">TIPEX</a></td><td>层级决策、任务/结构级编排。</td><td>不能只把 manager prompt 接到 worker prompt 前面。</td><td>组织约束图 + 目标干预后的轨迹传播性质。</td></tr>
+    <tr><td><a href="https://openreview.net/forum?id=EPL2YoeGow">AgentXRay</a> · <a href="https://openreview.net/forum?id=3pLFgUQLzJ">GraphFlow</a></td><td>工作流重构和图式工作流管理。</td><td>不能只输出可视化 workflow 或日志。</td><td>带组织状态和权限来源的轨迹生成器。</td></tr>
+    <tr><td><a href="https://openreview.net/forum?id=9kJQjx2B80">ProcMEM</a> · <a href="https://openreview.net/forum?id=P1jHroBS5E">Meta Context</a> · <a href="https://openreview.net/forum?id=5kteupXJ7B">COMAD</a></td><td>程序记忆、技能进化、协作技能复用。</td><td>不能只保存 steps 或做相似度检索。</td><td>带授权范围、状态验证、来源和污染检测的 skill automaton。</td></tr>
+    <tr><td><a href="https://openreview.net/forum?id=Jk4zLorDUx">Architecture Matters</a> · <a href="https://openreview.net/forum?id=Bb0pQqsiad">AgentLAB</a></td><td>MAS 架构攻击面、长时攻击评测。</td><td>不能只把内部威胁作为预定义 attack schedule。</td><td>同组织状态下的反事实 benign/insider 轨迹干预。</td></tr>
+    <tr><td><a href="https://openreview.net/forum?id=Kb2m543agS">CausalTrace</a> · <a href="https://openreview.net/forum?id=fE4urn9hyM">CausalArmor</a> · <a href="https://openreview.net/forum?id=iSuqYRmG4A">ToolShield</a></td><td>多步攻击因果检测、提示注入防御、多轮工具安全。</td><td>不能只把安全作为额外 guardrail。</td><td>用同一生成 Harness 产生并解释安全干预前后的轨迹差异。</td></tr>
+    <tr><td><a href="https://openreview.net/forum?id=ORVJCJczoG">AgentNoiseBench</a></td><td>工具噪声和 Agent 失效模式评测。</td><td>不能只报告最终任务成功率。</td><td>把路由、handoff、skill provenance 纳入轨迹级状态。</td></tr>
+  </tbody></table></div>
+
+  <h2>文献驱动的更新记录</h2>
+  <div class="road"><span class="stage">R0</span><h3>从“更真实”改成 OBTG 新任务</h3><p>原始想法是员工日程更真实；复核 ICML 2026 后发现这不足以形成 ML 贡献。更新为 Organizational Behavior Trajectory Generation：输入组织约束和干预，输出可审计长期轨迹。</p><p><span class="status done">已完成方向更新</span> 这是论文标题、摘要和问题定义必须采用的版本。</p></div>
+  <div class="road"><span class="stage">R1</span><h3>从“层级会议”升级为 Constraint Graph</h3><p>吸收 Multi²、TIPEX 和 MAS-Orchestra 的层级/编排思想，同时加入组织特有的权限、信息边界、部门依赖和目标干预。</p><p><span class="status done">已有原型</span> 当前 <span class="mono">hierarchical_planning.py</span> 和 <span class="mono">hierarchical_meeting.py</span> 已实现最小两级会议；<span class="status next">论文方法待完成</span> 需要将自然语言 minutes 进一步结构化为约束包。</p></div>
+  <div class="road"><span class="stage">R2</span><h3>从“关键词路由”升级为 Risk–Complexity Controller</h3><p>当前 <span class="mono">BehaviorRouter</span> 是工程 fast path，只能证明接口切分。论文版本必须让门控器估计复杂度、风险、不确定性并允许 abstention，学习何时调用 Planner、Executor 或人工/Agent handoff。</p><p><span class="status open">当前不足</span> 规则路由本身不够 ICML；必须升级成可训练或可校准的决策机制。</p></div>
+  <div class="road"><span class="stage">R3</span><h3>从“文件记忆”升级为 Provenance Skill Automaton</h3><p>吸收 ProcMEM、Meta Context 和 COMAD 的技能复用思想，但增加 pre/post-condition、permission scope、source trajectory、expiry 和 validation gate，使技能成为受约束的可执行子图。</p><p><span class="status open">当前不足</span> 现有 <span class="mono">SkillMemory</span> 仍是轻量 JSON 原型，不能直接作为论文主创新。</p></div>
+  <div class="road"><span class="stage">R4</span><h3>从“攻击场景”升级为 Counterfactual Threat Pairing</h3><p>吸收 Architecture Matters、AgentLAB、CausalTrace 和 ToolShield 的安全问题意识，固定组织状态后只干预意图、权限、记忆或信息流，生成成对轨迹并记录 provenance。</p><p><span class="status next">待实现</span> 需要把攻击 schedule 改造成可控干预，而不是只在日程中插入攻击动作。</p></div>
+  <div class="road"><span class="stage">R5</span><h3>ICML 创新门槛审查</h3><ul><li>是否有新的 OBTG 任务定义，而不是企业 Agent 应用？</li><li>是否有新的约束传播或约束轨迹生成方法，而不是 prompt 编排？</li><li>是否能写出至少三个可验证、可被反驳的干预一致性命题？</li><li>是否能在多个组织结构、工具和企业任务上泛化，而不是只服务一条攻击脚本？</li><li>是否同时报告轨迹级质量和生成数据集的下游 utility？</li></ul><p><span class="status next">通过条件</span> 五项都满足后，才有足够证据把工程原型提升为 ICML 级方法；“更真实”本身不作为单独创新点。</p></div>
+
+  <h2>方法对象与论文贡献的最终版本</h2>
+  <div class="grid">
+    <article class="card"><h3>Contribution 1 · OBTG</h3><p>提出组织约束下的企业 Agent 行为轨迹生成任务，明确输入、输出、状态和干预语义。</p></article>
+    <article class="card"><h3>Contribution 2 · Constraint-conditioned generation</h3><p>提出把组织状态、权限和目标依赖传播到轨迹生成/验证过程的方法；Router、handoff 和 skill 是其中的工程机制与消融变量。</p></article>
+    <article class="card"><h3>Contribution 3 · Counterfactual evaluation</h3><p>提出从同一组织状态生成 benign/insider 成对轨迹的评测范式，并同时验证轨迹性质和生成数据集的下游安全 utility。</p></article>
+  </div>
+
+  <h2>当前仓库与目标方法的差距</h2>
+  <div class="table-wrap"><table class="table"><thead><tr><th>仓库当前状态</th><th>对最终论文的作用</th><th>还必须升级的部分</th></tr></thead><tbody>
+    <tr><td><span class="mono">hierarchical_planning.py</span>：部门推断、负责人选择、两级 prompt。</td><td>证明组织层级接口可插入现有 Morpheus。</td><td>结构化 constraint packet、依赖传播和信息可见性。</td></tr>
+    <tr><td><span class="mono">behavior_router.py</span>：确定性规则路由。</td><td>证明简单状态和复杂行为可以分流。</td><td>可训练/可校准的 risk–complexity gate、abstention 和成本目标。</td></tr>
+    <tr><td><span class="mono">skill_memory.py</span>：按员工 JSON 技能记忆。</td><td>证明技能可以跨事件复用并保留来源事件。</td><td>技能自动机、权限范围、过期、验证和污染恢复。</td></tr>
+    <tr><td><span class="mono">task.py</span>：human-planner → tool-agent handoff。</td><td>提供计划–执行交接轨迹。</td><td>记录意图不确定性、交接原因、执行偏差和反事实重放。</td></tr>
+  </tbody></table></div>
+
+  <div class="note warn" style="margin-top:18px"><b>最终自我判断：</b>如果只保留当前代码里的四个工程模块，仍然不足以达到 ICML。当前 road map 已经明确了一个有潜力的科学问题，但还不是已被证明的创新方法。下一步必须实现约束条件下的轨迹生成/验证机制，并用多维轨迹性质、反事实实验和真实日志上的下游 utility 证明它有效。录用仍取决于之后的方法完整性与实验结果。</div>
+  <div class="footer">最后更新：2026-11-18 · 本页版本：v3 · 旧版记录：<a href="research_road.html">research_road.html</a> · 跨会议数据生成调研：<a href="multiagent_dataset_generation_survey.html">multiagent_dataset_generation_survey.html</a> · 参考入口：<a href="https://tsrigo.github.io/ICML2026-Guide-CN/">ICML 2026 Guide CN</a> · 本页面是研究方向审查，不承诺录用。</div>
+</main>
+</body>
+</html>

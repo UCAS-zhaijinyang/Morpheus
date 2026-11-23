@@ -1,11 +1,10 @@
 .DS_Store
+.env
 test/
 __pycache__/
 .venv/
+.dsh/
 tmp/
-
-owl/*
-camel/*
 
 *.txt
 .vscode/
@@ -18,8 +17,6 @@ experiment_output/
 workspace/
 init_schedule_old/
 !requirements.txt
-!download.txt
-
 # output files
 demo/init_schedule/
 demo/generated_members/
@@ -30,7 +27,7 @@ demo/attack_schedule/
 demo/attack_logs/
 
 output/
-Chimera/
+Morpheus/
 execution_logs/
 Final-Output/*
 
@@ -38,3 +35,5 @@ https.py
 !post_process/https.py
 
 Final-Output-OpenAI/*
+
+morpheus_scenario_1/

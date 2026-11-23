@@ -1,4 +1,4 @@
-# Chimera: Harnessing Multi-Agent LLMs for Automatic Insider Threat Simulation
+# Morpheus: Auditable Enterprise Behavior Simulation for Agent-Mediated Insider Threats
 
 [![NDSS 2026](https://img.shields.io/badge/NDSS-2026-blue)](https://www.ndss-symposium.org/)
 [![Paper](https://img.shields.io/badge/Paper-PDF-red)](https://www.ndss-symposium.org/wp-content/uploads/2026-f375-paper.pdf)
@@ -7,14 +7,20 @@
 
 This repository contains the source code for the paper:
 
-> **Chimera: Harnessing Multi-Agent LLMs for Automatic Insider Threat Simulation**
-> *Network and Distributed System Security Symposium (NDSS) 2026*
+> **Morpheus: Auditable Enterprise Behavior Simulation for Agent-Mediated Insider Threats**
+> Research prototype derived from the Chimera NDSS 2026 simulator
 
 ## Overview
 
-![Chimera Overview](assets/overview.png)
+![Morpheus Overview](assets/overview.png)
 
-Chimera is a multi-agent LLM-driven simulation framework that automatically generates realistic insider threat datasets. It models a virtual organization as a society of LLM agents, where each with a distinct role, personality, and tool access, and orchestrates both normal daily operations and adversarial insider attack behaviors. The collected logs can be served as labeled ground-truth data for insider threat detection research.
+Morpheus is a multi-agent LLM-driven simulation framework that automatically generates realistic insider threat datasets. It models a virtual organization as a society of LLM agents, where each with a distinct role, personality, and tool access, and orchestrates both normal daily operations and adversarial insider attack behaviors. The collected logs can be served as labeled ground-truth data for insider threat detection research.
+
+## Morpheus-Harness research prototype
+
+The current research direction is being reframed as Organizational Behavior Trajectory Generation (OBTG): an organizational agent harness that generates enterprise-like trajectories under hierarchy, authority, memory, and tool constraints. The ICML 2027 innovation audit, literature trail, method gap, and acceptance gates are tracked in [`docs/research_road_icml2027.html`](docs/research_road_icml2027.html); the earlier iteration is retained in [`docs/research_road.html`](docs/research_road.html). The 100-employee, three-month engineering practice is recorded in [`docs/engineering_roadmap_100x3m.html`](docs/engineering_roadmap_100x3m.html).
+
+The new runtime artifacts are `hierarchy.json`, `behavior_policy.csv`, `harness_events.jsonl`, and per-member `skills/` files. The default offline tool mode remains the safe setting for experiments.
 
 ---
 
@@ -29,8 +35,8 @@ Chimera is a multi-agent LLM-driven simulation framework that automatically gene
   - [Phase 2: Normal Behavior Simulation](#phase-2-normal-behavior-simulation)
   - [Phase 3: Attack Simulation](#phase-3-attack-simulation)
 - [Log Collection](#log-collection)
-- [Attack Scenario Format](#attack-scenario-format)
-- [Supported LLM Backends](#supported-llm-backends)
+- [Threat Scenario Format](#threat-scenario-format)
+- [DeepSeek Harness runtime](#deepseek-harness-runtime)
 - [Cleanup](#cleanup)
 - [Citation](#citation)
 - [Community Contributions](#community-contributions)
@@ -40,7 +46,7 @@ Chimera is a multi-agent LLM-driven simulation framework that automatically gene
 ## Repository Structure
 
 ```
-Chimera/
+Morpheus/
 ├── src/           
 │   ├── config.py                  
 │   ├── foundation_model.py       
@@ -54,10 +60,11 @@ Chimera/
 │   ├── daily_execution_auto_attack.py  # Attack-injected simulation entry point
 │   ├── attack_schedule.py          
 │   ├── daily_attack_schedule.py
-│   ├── task.py                    
+│   ├── task.py                    # Employee task entry point
+│   ├── deepseek_harness_adapter.py # DeepSeek Harness bridge
 │   ├── member_email.py            
 │   └── random_browse.py            
-├── attacks/                        # MITRE ATT&CK-mapped attack scenario definitions
+├── attacks/                        # Primary threat family definitions
 ├── config_template/                # Template files for new scenarios
 │   ├── env.jsonc                   
 │   ├── member.jsonc                
@@ -66,9 +73,7 @@ Chimera/
 │   ├── daily_execution.sh          # Orchestrate multi-day simulation with log capture
 │   ├── attack_auto.sh              # Automate attack-day execution
 │   └── exit_checker.sh             # Process watchdog for simulation runs
-└── zips/
-    ├── owl.zip                     # Modified OWL multi-agent framework
-    └── camel.zip                   # Modified Camel multi-agent framework
+└── requirements.txt                # DeepSeek Harness SDK dependency
 ```
 
 ---
@@ -79,7 +84,7 @@ Chimera/
 - [sysdig](https://github.com/draios/sysdig) for system call capture (host machine)
 - [tcpdump](https://www.tcpdump.org/) for network capture (host machine)
 - [tmux](https://github.com/tmux/tmux) for session management
-- An API key for at least one supported LLM provider (see [Supported LLM Backends](#supported-llm-backends))
+- A DeepSeek API key for the Harness runtime
 
 ---
 
@@ -87,11 +92,11 @@ Chimera/
 
 ### 1. Launch Docker Container
 
-From the Chimera repository root:
+From the Morpheus repository root:
 
 ```bash
 sudo docker run --privileged -it \
-  --name chimera \
+  --name morpheus \
   -v $(pwd):/data \
   --network host \
   ubuntu:22.04 \
@@ -114,52 +119,21 @@ uv venv .venv --python=3.10
 source .venv/bin/activate
 ```
 
-### 4. Install Modified OWL and Camel Frameworks
-
-Chimera requires patched versions of OWL and Camel that add structured logging hooks. Extract them from the provided zip files into the repository root:
+### 4. Install DeepSeek Harness
 
 ```bash
-cd /data/Chimera
-unzip zips/owl.zip
-unzip zips/camel.zip
+uv pip install -r requirements.txt
+export DSH_HOME=/absolute/path/to/morpheus/.dsh
 ```
 
-| Framework | Chimera-patched commit | Upstream base commit |
-|-----------|------------------------|----------------------|
-| OWL       | `b7d3e85a704266fda8507cf801cf965713ca4f8` | `496f78564f95a6e6a503f585fc4cd41f9c2fe258` |
-| Camel     | `45c17ebbf068f5c54c4657212831f7a8d2e0db4a` | `8474e26dcf9a2a10e9d2c7504b506f8f8580e4e6` |
+The Python SDK starts the local `dsh --profile sdk` runtime. Set
+`MORPHEUS_DSH_HOME` when the Harness state should live outside `DSH_HOME`.
+`MORPHEUS_DSH_MODEL` selects the runtime model. The adapter uses two Harness
+sessions for complex work, one for the employee planner and one for the tool
+agent, and records notifications in `harness_events.jsonl`.
 
-**Install OWL:**
-
-```bash
-cd owl/
-uv pip install -e .
-cd ..
-```
-
-**Install Camel:**
-
-```bash
-cd camel/
-uv pip install -e ".[all]"
-uv pip install pre-commit mypy
-pre-commit install
-cd ..
-```
-
-**Install remaining dependencies:**
-
-```bash
-uv pip install -U google-genai
-uv pip install json5 playwright
-playwright install-deps
-playwright install
-```
-
-> **Note:** After extracting Camel, update the log directory path in `camel/camel/societies/workforce/single_agent_worker.py` for specify the meeting log directory (can skip if set as default):
-> ```python
-> log_dir = "/data/Chimera/<scenario_name>/meeting_logs"
-> ```
+The former `zips/camel` and `zips/owl` artifacts were removed from the working
+tree because the current simulation does not import them.
 
 ---
 
@@ -169,22 +143,25 @@ All simulation parameters are controlled via `src/config.py`. Key settings to ad
 
 | Parameter | Description | Example |
 |-----------|-------------|---------|
-| `base_dir` | Absolute path to the Chimera directory inside the container | `"/data/Chimera"` |
-| `scenario_name` | Name for this simulation run (output directory prefix) | `"chimera_scenario_1"` |
+| `base_dir` | Absolute path to the Morpheus directory inside the container | `"/data/Morpheus"` |
+| `scenario_name` | Name for this simulation run (output directory prefix) | `"morpheus_scenario_1"` |
 | `company_id` | Identifier for the company JSON config file | `"medical_institution"` |
 | `company_type` | Human-readable company type fed to the LLM | `"Medical Institution (Small Community Hospital)"` |
 | `goal` | High-level organizational goal for the simulation | `"...complete EHR collection and influenza trend analysis..."` |
 | `employee_number` | Number of simulated employees | `5` |
 | `period` | Simulation duration in weeks | `2` |
 | `base_date` | Start date of the simulation | `"2025-05-02"` |
-| `foundation_corp` | LLM provider (`openai`, `google`, `deepseek`, `xai`) | `"openai"` |
-| `foundation_model` | Model name for the chosen provider | `"gpt-4o-mini"` |
+| `workday_start` / `workday_end` | Logical workday boundary | `10:00` / `19:00` |
+| `deepseek_harness_home` | Explicit Harness state directory | `"/data/Morpheus/.dsh"` |
+| `deepseek_harness_profile` | Harness tool profile | `"sdk"` |
+| `deepseek_harness_model` | Model selected by the Harness provider | `"deepseek-v4-flash"` |
 | `loaf_rate` | Fraction of agents that loaf (browse aimlessly) per interval | `0.3` |
 
-Set your API key in the `.env` file at the repository root:
+Set the DeepSeek API key in the environment used by the Harness runtime:
 
 ```bash
-OPENAI_API_KEY=sk-...
+export DEEPSEEK_API_KEY=sk-...
+export DSH_HOME=/absolute/path/to/morpheus/.dsh
 ```
 
 ---
@@ -194,7 +171,7 @@ OPENAI_API_KEY=sk-...
 Activate the virtual environment before each session:
 
 ```bash
-source /data/Chimera/.venv/bin/activate
+source /data/Morpheus/.venv/bin/activate
 ```
 
 ### Phase 1: Agent Society Construction
@@ -231,6 +208,39 @@ python src/daily_execution_auto.py --date <DAY> --week <WEEK_NUMBER>
 python src/daily_execution_auto.py --date Friday --week 1
 ```
 
+For a long-horizon run, use the scale entry point after daily schedules have
+been generated. It batches one employee's complete horizon into one auditable
+human-planner/tool-agent hand-off, then replays every schedule event into
+`trajectory.jsonl`, `behavior_policy.csv`, `final_schedule.csv`, and
+`logon.csv`.
+
+```bash
+bash scripts/scale_simulation.sh
+
+# Or override the scale parameters explicitly.
+python src/scale_simulation.py \
+  --weeks 13 \
+  --employees 100 \
+  --workers 8
+```
+
+The scale entry point assumes Monday through Friday workdays and reads
+`MORPHEUS_WORKDAY_START` and `MORPHEUS_WORKDAY_END`, which default to `10:00`
+and `19:00`. Use `--include-weekends` when the scenario treats all seven days
+as working days. The completed run writes `manifest.json` under
+`execution_logs/scale_horizon`.
+
+Agent behavior CSVs are reconstructed from the persisted
+`harness_events.jsonl`. Each row groups one Harness turn and step, preserving
+high-level actions such as `tool_execute` and `agent_decision` without another
+model call. Rebuild them after an existing run with:
+
+```bash
+python src/scale_simulation.py \
+  --output-dir /absolute/path/to/execution_logs/scale_horizon \
+  --rebuild-agent-csv
+```
+
 To automate multi-day execution with concurrent log collection:
 
 ```bash
@@ -246,7 +256,7 @@ bash scripts/daily_execution.sh
 ```bash
 python src/attack_schedule.py --attacker <AGENT_ID> --attid <ATTACK_ID>
 # Example:
-python src/attack_schedule.py --attacker clia-1 --attid gen_attack_1
+python src/attack_schedule.py --attacker clia-1 --attid threat_ai_data_boundary
 ```
 
 **Step 2 - Run the attack-injected simulation for the selected date:**
@@ -254,7 +264,7 @@ python src/attack_schedule.py --attacker clia-1 --attid gen_attack_1
 ```bash
 python src/daily_execution_auto_attack.py --attacker <AGENT_ID> --attid <ATTACK_ID>
 # Example:
-python src/daily_execution_auto_attack.py --attacker clia-1 --attid gen_attack_1
+python src/daily_execution_auto_attack.py --attacker clia-1 --attid threat_ai_data_boundary
 ```
 
 To automate the full attack run:
@@ -271,13 +281,13 @@ Sysdig (`.scap`) and tcpdump (`.pcap`) capture is integrated into `scripts/daily
 
 **Network capture (pcap):**
 ```bash
-CONTAINER_PID=$(docker inspect -f '{{.State.Pid}}' chimera)
+CONTAINER_PID=$(docker inspect -f '{{.State.Pid}}' morpheus)
 nsenter -t $CONTAINER_PID -n tcpdump -i any -w /data/Logs/<filename>.pcap
 ```
 
 **System call capture (scap):**
 ```bash
-CONTAINER_ID=$(docker ps -a | grep chimera | awk '{print $1}')
+CONTAINER_ID=$(docker ps -a | grep morpheus | awk '{print $1}')
 sudo sysdig -v -b \
   -p "%evt.rawtime %user.uid %proc.pid %proc.name %syscall.type %evt.dir" \
   -w /data/Logs/<filename>.scap \
@@ -288,20 +298,31 @@ Post-processing extracts structured features (logon events, file operations, HTT
 
 ---
 
-## Attack Scenario Format
+## Threat Scenario Format
 
-Attack scenarios in `attacks/` follow a structured JSON schema that maps each step to [MITRE ATT&CK](https://attack.mitre.org/) techniques:
+The current experiments use three primary threat families. Their research basis and experiment design are documented in [`docs/threat_scenario_research_2027.html`](docs/threat_scenario_research_2027.html).
+
+- `threat_ai_data_boundary` models an authorized employee using an AI assistant or external AI service to move sensitive information across a data boundary.
+- `threat_cross_department_workflow` models legitimate project handoffs, temporary delegation, and approval relationships being combined to aggregate information across departments.
+- `threat_skill_memory_contamination` models an obsolete, poisoned, or over-scoped procedural skill being reused by an Agent in a new authorization context.
+
+Legacy `gen_attack_*` and `multi_attack_*` runtime files were removed from the working tree during cleanup. Primary scenarios use the same schedule injection and tool execution entry points, and extend the existing schema with threat-model and provenance fields.
+
+Threat scenarios follow a structured JSON schema. Each step can map to [MITRE ATT&CK](https://attack.mitre.org/) or an AI security taxonomy such as the [OWASP GenAI Security Project](https://genai.owasp.org/llm-top-10/):
 
 ```json
 {
-  "attack_id": "gen_attack_1",
-  "scenario_title": "Privilege escalation for IP theft",
-  "type": "privilege escalation",
-  "who": { "role": "traitor", "level": "all" },
-  "what": "theft of intellectual property",
-  "when": { "frequency": "recurrent", "time_window": "after hours" },
-  "where": ["operating system", "network", "application"],
-  "why": { "motivation": "financial", "details": "..." },
+  "attack_id": "threat_ai_data_boundary",
+  "scenario_title": "AI-Mediated Data Boundary Abuse by an Authorized Employee",
+  "type": "ai-mediated data boundary abuse",
+  "who": { "role": "authorized employee", "origin": "internal" },
+  "what": "use an AI workflow to transform sensitive data and disclose the result outside the authorized boundary",
+  "when": { "frequency": "single or recurrent", "time_window": "work hours or during a normal task" },
+  "where": ["enterprise data repositories", "AI assistant", "email or file sharing"],
+  "why": { "motivation": ["convenience", "personal gain"], "details": "..." },
+  "threat_model": { "attacker_capability": "...", "security_boundary": "..." },
+  "research_questions": ["..."],
+  "framework_refs": ["OWASP GenAI Security Project 2025"] ,
   "how": [
     {
       "step": 1,
@@ -318,23 +339,26 @@ Attack scenarios in `attacks/` follow a structured JSON schema that maps each st
 
 ---
 
-## Supported LLM Backends
+## DeepSeek Harness runtime
 
-Configure the backend in `src/config.py`:
+All model-backed generation goes through the DeepSeek Harness adapter. Set
+`MORPHEUS_DSH_MODEL` to override the configured model and
+`MORPHEUS_DSH_PROFILE=sdk` to enable the full Harness tool profile. With
+`offline_mode=True`, the adapter selects `sdk-minimal` unless an explicit
+profile override is supplied. This keeps the existing offline setting from
+enabling web tools while preserving local workspace execution.
 
-| Provider | `foundation_corp` | Example `foundation_model` |
-|----------|-------------------|----------------------------|
-| OpenAI | `"openai"` | `"gpt-4o-mini"`, `"gpt-4o"` |
-| Google | `"google"` | `"gemini-2.0-flash"` |
-| DeepSeek | `"deepseek"` | `"deepseek-chat"` |
+---
 
-Set the corresponding API key in `.env` (OpenAI reads from the standard `OPENAI_API_KEY` variable; other providers require `api_key` to be set directly in `config.py`).
+## Cleanup
+
+The repository keeps source code, current threat definitions, research documents, and the deepseek-v4.1-flash experiment directories. Python caches, pytest caches, Harness temporary files, and obsolete standalone artifacts are excluded from the working tree. Generated scenario and experiment outputs are ignored by Git and should be archived separately when they are needed for analysis.
 
 ---
 
 ## Citation
 
-If you use Chimera in your research, please cite our paper:
+If you use Morpheus in your research, cite the current Morpheus prototype and acknowledge the published Chimera predecessor:
 
 ```bibtex
 @inproceedings{yu2026chimera,
@@ -349,7 +373,7 @@ If you use Chimera in your research, please cite our paper:
 
 ## Community Contributions
 
-We welcome contributions from the community to extend and improve Chimera. This includes, but is not limited to:
+We welcome contributions from the community to extend and improve Morpheus. This includes, but is not limited to:
 
 - Adding support for new applications or services in the simulated environment
 - Introducing new insider threat attack scenarios (following the existing JSON schema)

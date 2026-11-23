@@ -82,7 +82,7 @@ if __name__ == "__main__":
         "--attacker", type=str, required=True, help="Attacker id, e.g., cdev-1"
     )
     parser.add_argument(
-        "--attid", type=str, required=True, help="Attack id, e.g., gen_attack_1"
+        "--attid", type=str, required=True, help="Attack id, e.g., threat_ai_data_boundary"
     )
     args = parser.parse_args()
 

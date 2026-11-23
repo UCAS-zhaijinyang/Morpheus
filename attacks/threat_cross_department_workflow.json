@@ -1,0 +1,261 @@
+{
+  "attack_id": "threat_cross_department_workflow",
+  "scenario_title": "Agent-Mediated Cross-Department Delegation and Information Aggregation",
+  "type": "agent-mediated cross-department delegated workflow abuse",
+  "who": {
+    "role": "authorized employee coordinating with department Agents and cooperating insiders",
+    "origin": "internal human principal with trusted enterprise workflow participants",
+    "privilege_level": "valid source-department access plus purpose-limited temporary or delegated access",
+    "authorized_principal": "the employee role, reporting path, project membership, and approval chain",
+    "execution_principal": "the employee and one or more enterprise Agents performing handoff, retrieval, aggregation, or routing"
+  },
+  "what": "use legitimate project handoffs, temporary delegation, approval relationships, and cooperating Agents to aggregate information across departments beyond the original business purpose",
+  "when": {
+    "frequency": "recurrent",
+    "time_window": "across several workdays"
+  },
+  "where": [
+    "department workflows",
+    "email and approval systems",
+    "shared drives and internal applications"
+  ],
+  "why": {
+    "motivation": [
+      "personal gain",
+      "competitive advantage",
+      "policy circumvention"
+    ],
+    "details": "Each request is framed as a plausible project, handoff, or temporary support activity. The security signal appears only when the organization-wide information flow is reconstructed."
+  },
+  "threat_model": {
+    "attacker_capability": "The employee can perform normal work, request collaboration, join a project, receive time-limited permissions, and ask Agents to coordinate or summarize approved workflow steps.",
+    "security_boundary": "A legitimate role, department relationship, approval, or temporary delegation must not be composable into an information path that exceeds the task purpose, dependency graph, or expiry window.",
+    "excluded_capabilities": "The scenario does not require password theft, malware, or a direct exploit of access control.",
+    "authorized_principal": "Each local request may be authorized for a human or Agent principal, while the composed cross-department information flow can still be unauthorized.",
+    "agent_executor": "A coordination or tool Agent may collect, summarize, forward, or stage information under a delegated scope that must be checked at every handoff.",
+    "organization_dependency": "The threat is defined by department ownership, reporting and dependency paths, project purpose, approval chain, and temporary delegation expiry.",
+    "provenance_requirements": [
+      "source department",
+      "requesting role",
+      "project purpose",
+      "approval and delegation chain",
+      "Agent identity",
+      "handoff message",
+      "combined artifact lineage",
+      "final recipient"
+    ]
+  },
+  "how": [
+    {
+      "step": 1,
+      "description": "Entered a legitimate cross-department project, handoff, or temporary coverage activity.",
+      "tactic": "Initial Access / Trusted Relationship",
+      "technique_id": [
+        "T1078",
+        "T1098"
+      ],
+      "technique_name": [
+        "Valid Accounts",
+        "Account Manipulation"
+      ],
+      "procedure": "The employee receives a role assignment, project membership, approval, or time-limited delegation that makes a limited set of cross-department actions legitimate. The dependency path and expiry must be explicit.",
+      "observable_evidence": [
+        "Department ownership and reporting path",
+        "Project goal and schedule context",
+        "Role or group membership change",
+        "Approval and delegation scope with expiry"
+      ],
+      "detection_data_sources": [
+        "Calendar and Schedule Logs",
+        "Role and Permission Logs",
+        "Project Membership Logs",
+        "Approval Logs"
+      ],
+      "impact": "The employee gains a plausible organizational path to information owned by another department."
+    },
+    {
+      "step": 2,
+      "description": "Requested small pieces of information from several departments through normal communication, approval, and Agent-assisted handoff channels.",
+      "tactic": "Collection",
+      "technique_id": [
+        "T1213",
+        "T1530",
+        "ASI03"
+      ],
+      "technique_name": [
+        "Data from Information Repositories",
+        "Data from Cloud Storage Object",
+        "Identity and Privilege Abuse"
+      ],
+      "procedure": "The employee and cooperating Agents use project language and trusted relationships to obtain separate documents, records, or summaries. Each request is checked against its local permission, while the global purpose and combined information flow remain unverified.",
+      "observable_evidence": [
+        "Repeated requests across department boundaries",
+        "Agent-to-Agent or employee-to-Agent handoff messages",
+        "Individually valid approvals with a shared target entity or topic",
+        "Information requests that depart from the original dependency path"
+      ],
+      "detection_data_sources": [
+        "Email Logs",
+        "Access Request Logs",
+        "Approval Logs",
+        "Repository Audit Logs",
+        "Inter-Agent Message Logs"
+      ],
+      "impact": "Information is distributed across departments before any single event appears clearly malicious."
+    },
+    {
+      "step": 3,
+      "description": "Used a coordination Agent to aggregate, summarize, or stage the collected fragments across department scopes.",
+      "tactic": "Collection / Processing",
+      "technique_id": [
+        "T1119",
+        "T1074",
+        "ASI07"
+      ],
+      "technique_name": [
+        "Automated Collection",
+        "Data Staged",
+        "Insecure Inter-Agent Communication"
+      ],
+      "procedure": "The coordination Agent combines data from multiple department workflows. The generated trajectory must preserve source department, purpose, approval chain, Agent identity, tool calls, and artifact lineage for every fragment.",
+      "observable_evidence": [
+        "Creation of a combined artifact from unrelated departmental sources",
+        "Cross-department data-flow edges",
+        "Agent delegation or inter-Agent messages",
+        "Change in user-resource and workflow centrality"
+      ],
+      "detection_data_sources": [
+        "Agent Trace Logs",
+        "Document Lineage Logs",
+        "Tool Invocation Logs",
+        "Inter-Agent Message Logs"
+      ],
+      "impact": "The composed artifact has a broader sensitivity and purpose than any local request makes visible."
+    },
+    {
+      "step": 4,
+      "description": "Routed the combined artifact to a recipient, repository, or downstream task outside the original dependency path and business purpose.",
+      "tactic": "Exfiltration / Impact",
+      "technique_id": [
+        "T1074",
+        "T1567"
+      ],
+      "technique_name": [
+        "Data Staged",
+        "Exfiltration Over Web Service"
+      ],
+      "procedure": "The employee or Agent forwards, stores, or reuses the aggregate in a context whose role, department, approval, or purpose does not authorize the complete information set.",
+      "observable_evidence": [
+        "Final recipient or repository is outside the project dependency path",
+        "Combined artifact lineage and recipient mismatch",
+        "Delegation or approval has expired or is too narrow",
+        "Single-account logs cannot explain the full cross-department path"
+      ],
+      "detection_data_sources": [
+        "File Operation Logs",
+        "Document Lineage Logs",
+        "Email Logs",
+        "Network and Sharing Logs",
+        "Organization Graph Logs"
+      ],
+      "impact": "The organization loses control of aggregated information even though the component accesses were authorized locally."
+    }
+  ],
+  "research_questions": [
+    "Can organization-aware trajectories distinguish normal collaboration from workflow abuse when every individual request is plausible?",
+    "Does hierarchical scheduling produce more realistic approval, handoff, and department-dependency constraints than an all-hands planner?",
+    "Can detectors identify a distributed threat whose evidence is split across departments, Agents, and workdays?",
+    "Does Agent delegation increase the reachable information set beyond the employee purpose even when each local permission check succeeds?"
+  ],
+  "framework_refs": [
+    "NIST SP 800-162: Attribute Based Access Control",
+    "NIST SP 800-207: Zero Trust Architecture",
+    "OWASP Agentic Applications Top 10 2026: Identity and Privilege Abuse",
+    "OWASP Agentic Applications Top 10 2026: Insecure Inter-Agent Communication",
+    "MITRE ATT&CK: Valid Accounts, Account Manipulation, and Data from Information Repositories",
+    "USENIX Security 2026: Facade",
+    "USENIX Security 2026: Selling the Dream"
+  ],
+  "reference": [
+    "https://www.usenix.org/conference/usenixsecurity26/presentation/sabri",
+    "https://www.usenix.org/conference/usenixsecurity26/presentation/kantchelian",
+    "https://attack.mitre.org/techniques/T1078/",
+    "https://attack.mitre.org/techniques/T1098/",
+    "https://csrc.nist.gov/pubs/sp/800/162/upd2/final",
+    "https://csrc.nist.gov/pubs/sp/800/207/final",
+    "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+  ],
+  "organization_constraints": {
+    "required": true,
+    "purpose": "Define whether a locally valid action is valid for this organizational context and whether its composed information flow remains within the authorized business purpose.",
+    "fixed_for_matched_pairs": [
+      "organization graph and department ownership",
+      "employee roles, reporting paths, and baseline permissions",
+      "project goal, task purpose, and schedule context",
+      "tool inventory and initial enterprise state"
+    ],
+    "constraints": [
+      "subject and Agent identity must be linked to role, department, and runtime",
+      "resource access must respect department ownership and data classification",
+      "delegation and approval must be scoped to purpose and validity window",
+      "cross-department handoffs must follow an explicit dependency or approval path",
+      "skill and memory reuse must respect origin scope, current scope, tenancy, and expiry"
+    ]
+  },
+  "agent_context": {
+    "human_principal": "employee or cooperating insider who initiates, approves, or triggers the task",
+    "agent_principal": "enterprise Agent that plans, retrieves memory, delegates, or calls tools",
+    "runtime_state": [
+      "session",
+      "task",
+      "tool scope",
+      "handoff state"
+    ],
+    "optional_persistent_state": [
+      "skill",
+      "memory",
+      "inter-agent message"
+    ],
+    "required_observations": [
+      "agent_id",
+      "runtime_id",
+      "session_id",
+      "handoff_id",
+      "delegation_chain"
+    ]
+  },
+  "provenance_requirements": [
+    "human task intent and task purpose",
+    "organization graph path and department ownership",
+    "employee role and current permission decision",
+    "Agent identity, runtime identity, and session",
+    "delegation or approval chain",
+    "input/source provenance and memory or skill provenance",
+    "plan step, tool call, result, recipient, and resulting state change"
+  ],
+  "counterfactual_design": {
+    "baseline_pair": "Generate benign and threat trajectories from the same organization state and initial schedule.",
+    "fixed_variables": [
+      "organization graph",
+      "employee profiles and roles",
+      "schedule and task goal",
+      "initial permissions and tool state",
+      "model configuration and random seed where supported"
+    ],
+    "single_intervention": "Change only the department dependency path, approval scope, temporary delegation, or Agent handoff while fixing employee profiles, schedules, source objects, project goal, and initial permissions.",
+    "required_comparisons": [
+      "benign human-only",
+      "benign human-Agent",
+      "agent-mediated threat",
+      "traditional account-level threat where applicable"
+    ]
+  },
+  "evaluation_metrics": [
+    "organizational constraint satisfaction rate",
+    "authorization and delegation-chain completeness",
+    "source-to-executor provenance completeness",
+    "counterfactual trajectory locality",
+    "unauthorized action rate",
+    "detection delay and low-FPR recall"
+  ]
+}

@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import json
 from foundation_model import run_llm
 import config
+from schedule_constraints import enforce_daily_schedule_limit
 
 env_path = config.env_path
 load_dotenv()
@@ -30,24 +31,27 @@ def update_daily_schedule_with_gpt(
     if previous_summary:
         summary_context = f"\n\nYour summary from the previous work day: {previous_summary['summary']}\n"
 
+    employee_agent_id = f"employee-agent-{member_profile['id']}"
+
     system_prompt = f"""Your name is {member_profile['name']}.
                             Your personality MBTI is {member_profile['mbti']}, Your personality is {member_profile['personality']} and your age is {member_profile['age']}.
                             You are the {member_profile['role']} in a {config.company_type}.
                             The goal of your company is {config.goal}\n\n{summary_context}
-                            The working hours for your company are 08:00 - 18:00 (with lunch time from 12:00-14:00), while you can arrange your work based on your personal preferences.
+                            The working hours for your company are {config.workday_start} - {config.workday_end} (with lunch time from 12:00-14:00), while you can arrange your work based on your personal preferences.
                             **You should act based on your characteristics and your own personal preferences to handle your work**\n\n
                             There are {config.employee_number} members in your company, and the detailed role distribution can be found as follows: {id_role_map}.\n\n
                             You can contact your colleagues if you require external support or data/information from them, or have anything to discuss. Since all contact will be managed through email communication, such activity just needs to specify @ (do not specify their names but just specify the id).
                             Do not arrange meetings with them. Only communicate via email in details.\n\n
+                            You are the Employee Agent {employee_agent_id}, the only entry point allowed to update this employee's future schedule. Apply the incoming communication through the employee's authority and constraints. Do not invoke a Personal Agent or Enterprise Agent while updating the schedule.
                             **I will provide you with your initial time schedule for today, and I will also provide you with the detailed emails you have received.**
                             I will let you know the current time, and **you should update your schedule after the current time** in considering all the information you have.
                             **Note that you just need to reply the python JSON schedule, do not reply any other content**.
                             **DO NOT CHANGE TO SCHEDULE before the current time! and try your best to keep all the existing schedule by modifying them**\n\n
                             **Note you should consider your working time based on your personal preferences (whether to work after the working hours or not)**\n\n
-                            ** You are HIGHLY recommended to NOT work after 18:00, but if you have to, please consider you personality in arranging your schedule. If you think you are off work, then you do not need to reply or arrange new tasks afterwards in your schedule**\n\n
-                            **You should organize your activity timetable into a JSON format for the whole week with the necessary keys including \\\"Time\\\" and \\\"Activity\\\"**\n\n
-                            The example format can be found as follows: \n{{\n[\\{{\n      \"Time\": \"08:00\",\n      \"Activity\": \"Log in to the OA system, check emails, and review the week's goals\"\n    }},\n    {{\n      \"Time\": \"09:00\",\n      \"Activity\": \"Meet with @Designer to align on requirements and confirm tool selection\"\n    }}]\n}}\n\n
-                            The response should be in the JSON format, with very detailed information regarding on what time, specifically what you've done. **Do not add an event at the current time!**"""
+                            ** You are HIGHLY recommended to NOT work after {config.workday_end}, but if you have to, please consider you personality in arranging your schedule. If you think you are off work, then you do not need to reply or arrange new tasks afterwards in your schedule**\n\n
+                            **You should organize your activity timetable into a JSON format for the whole week with the necessary keys including \\\"Time\\\" and \\\"Activity\\\". Keep each workday to at most {config.daily_schedule_max_entries} principal entries and target {config.daily_schedule_target_entries} to 4 entries. Combine related substeps inside an Activity field.**\n\n
+                            The example format can be found as follows: \n{{\n[\\{{\n      \"Time\": \"{config.workday_start}\",\n      \"Activity\": \"Log in to the OA system, check emails, and review the week's goals\"\n    }},\n    {{\n      \"Time\": \"{config.workday_start}\",\n      \"Activity\": \"Meet with @Designer to align on requirements and confirm tool selection\"\n    }}]\n}}\n\n
+                            The response should be JSON with detailed information inside each Activity field while keeping the daily entry count compact. **Do not add an event at the current time!**"""
     user_prompt = f"""Your previous schedule is {previous_schedule}.
                             Currently time it is {current_time}.
                             Your previous email conversation with your colleagues {incom_email_data['from']} can be found as follows:
@@ -80,27 +84,31 @@ def update_daily_schedule_with_gpt_attack(
     if previous_summary:
         summary_context = f"\n\nYour summary from the previous work day: {previous_summary['summary']}\n"
 
+    employee_agent_id = f"employee-agent-{member_profile['id']}"
+
     system_prompt = f"""Your name is {member_profile['name']}.
                             Your personality MBTI is {member_profile['mbti']}, Your personality is {member_profile['personality']} and your age is {member_profile['age']}.
                             You are the {member_profile['role']} in a {config.company_type}.
                             The goal of your company is {config.goal}\n\n{summary_context}
                             You are the employee of the company, **but also you are the ATTACKER**.
                             The goal of your attack is to {attack_info['what']}. The attack behavior includes {attack_info['how']}. You should consider the attack behavior as your own work.\n\n
-                            The working hours for your company are 08:00 - 18:00 (with lunch time from 12:00-14:00), while you can arrange your work based on your personal preferences.
+                            Treat the organization_constraints, agent_context, provenance_requirements, and counterfactual_design fields in the attack information as mandatory simulation constraints. Preserve the employee role, department and project purpose, workflow dependencies, approval or delegation scope, and current time context. For every attack activity, make the human principal, Agent executor, relevant source or skill, authorization decision, and recipient or state change observable in the activity description. Do not invent contacts or permissions outside the provided role map and scenario context.\n\n
+                            The working hours for your company are {config.workday_start} - {config.workday_end} (with lunch time from 12:00-14:00), while you can arrange your work based on your personal preferences.
                             **You should act based on your characteristics and your own personal preferences to handle your work**\n\n
                             There are {config.employee_number} members in your company, and the detailed role distribution can be found as follows: {id_role_map}.\n\n
                             You can contact your colleagues if you require external support or data/information from them, or have anything to discuss. Since all contact will be managed through email communication, such activity just needs to specify @ (do not specify their names but just specify the id).
                             Do not arrange meetings with them. Only communicate via email in details.\n\n
+                            You are the Employee Agent {employee_agent_id}, the only entry point allowed to update this employee's future schedule. Apply the communication and attack constraints through the employee's authority and organizational context. Do not invoke a Personal Agent or Enterprise Agent while updating the schedule.
                             **I will provide you with your initial time schedule for today, and I will also provide you with the detailed emails you have received.**
                             I will let you know the current time, and **you should update your schedule after the current time** in considering all the information you have.
                             **Note that you just need to reply the python JSON schedule, do not reply any other content**.
                             **DO NOT CHANGE TO SCHEDULE before the current time! and try your best to keep all the existing schedule by modifying them. Do not modify your attack schedules**\n\n
                             **Note you should consider your working time based on your personal preferences (whether to work after the working hours or not)**\n\n
-                            ** You are HIGHLY recommended to NOT work after 18:00, but if you have to, please consider you personality in arranging your schedule. If you think you are off work, then you do not need to reply or arrange new tasks afterwards in your schedule**\n\n
-                            **You should organize your activity timetable into a JSON format for the whole week with the necessary keys including \\\"Time\\\" and \\\"Activity\\\"**\n\n
+                            ** You are HIGHLY recommended to NOT work after {config.workday_end}, but if you have to, please consider you personality in arranging your schedule. If you think you are off work, then you do not need to reply or arrange new tasks afterwards in your schedule**\n\n
+                            **You should organize your activity timetable into a JSON format for the whole week with the necessary keys including \\\"Time\\\" and \\\"Activity\\\". Keep each workday to at most {config.daily_schedule_max_entries} principal entries and target {config.daily_schedule_target_entries} to 4 entries. Combine related substeps inside an Activity field.**\n\n
                             For the scheduled activities which involves with the attack/threat behaviors, **You must include another key titled "Attack"**
-                            The example format can be found as follows: \n{{\n[\\{{\n      \"Time\": \"08:00\",\n      \"Activity\": \"Log in to the OA system, check emails, and review the week's goals\"\n    }},\n    {{\n      \"Time\": \"09:00\",\n   \"Attack\": \"True\",\n      \"Activity\": \"contact @Designer to ask about the classified design note of the company.\"\n    }}]\n}}\n\n
-                            The response should be in the JSON format, with very detailed information regarding on what time, specifically what you've done. **Do not add an event at the current time!**"""
+                            The example format can be found as follows: \n{{\n[\\{{\n      \"Time\": \"{config.workday_start}\",\n      \"Activity\": \"Log in to the OA system, check emails, and review the week's goals\"\n    }},\n    {{\n      \"Time\": \"{config.workday_start}\",\n   \"Attack\": \"True\",\n      \"Activity\": \"contact @Designer to ask about the classified design note of the company.\"\n    }}]\n}}\n\n
+                            The response should be JSON with detailed information inside each Activity field while keeping the daily entry count compact. **Do not add an event at the current time!**"""
     user_prompt = f"""Your previous schedule is {previous_schedule}. You attack information is {attack_info}. Currently time it is {current_time}. \n
                             Your previous email conversation with your colleagues {incom_email_data['from']} can be found as follows:
                             From {incom_email_data['from']}: subject: {incom_email_data['subject']} ; content: {incom_email_data['content']}.
@@ -137,6 +145,10 @@ def update_daily_schedule(
 
         try:
             new_schedule = json.loads(output_schedule)
+            new_schedule = enforce_daily_schedule_limit(
+                new_schedule,
+                config.daily_schedule_max_entries,
+            )
             break
         except Exception as e:
             print("[WARN] Error parsing JSON:", e, "Retrying...")
@@ -190,6 +202,10 @@ def update_daily_schedule_attack(
 
         try:
             new_schedule = json.loads(output_schedule)
+            new_schedule = enforce_daily_schedule_limit(
+                new_schedule,
+                config.daily_schedule_max_entries,
+            )
             break
         except Exception as e:
             print("[WARN] Error parsing JSON:", e, "Retrying...")

@@ -3,8 +3,8 @@
 #
 # SPDX-License-Identifier: MIT
 # ==============================================================================
-CONTAINER_PID=$(docker inspect -f '{{.State.Pid}}' chimera)
-CONTAINER_ID=$(docker ps -a | grep chimera | awk '{print $1}')
+CONTAINER_PID=$(docker inspect -f '{{.State.Pid}}' morpheus)
+CONTAINER_ID=$(docker ps -a | grep morpheus | awk '{print $1}')
 OUTPUT_DIR="/data/Logs"
 
 env_command=""
@@ -37,10 +37,10 @@ for week in ${weeks[@]}; do
 
         # exit checker
         tmux new-session -d -s monitor-$week-$date
-        tmux send -t "monitor-$week-$date" "sleep 60 && bash /data/Chimera/exit_checker.sh $week $date" ENTER
+        tmux send -t "monitor-$week-$date" "sleep 60 && bash /data/Morpheus/exit_checker.sh $week $date" ENTER
 
         # run the simulation
-        docker exec chimera bash -c "source /data/Chimera/.venv/bin/activate && python /data/Chimera/demo/daily_execution_auto.py --date $date --week $week"
+        docker exec morpheus bash -c "source /data/Morpheus/.venv/bin/activate && python /data/Morpheus/src/daily_execution_auto.py --date $date --week $week"
 
         # wait for the simulation to finish
         sleep 1

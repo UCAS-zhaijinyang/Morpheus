@@ -8,9 +8,9 @@
 week="$1"
 date="$2"
 
-root_dir="/data/Chimera"
-# log_dir="demo/execution_logs/daemon_logs"
-log_dir="$root_dir/demo/execution_logs/daemon_logs"
+root_dir="/data/Morpheus"
+scenario_name="${MORPHEUS_SCENARIO_NAME:-morpheus_scenario_1}"
+log_dir="$root_dir/$scenario_name/execution_logs/daemon_logs"
 days=("Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday" "Sunday")
 
 # Fetch the next date
@@ -36,10 +36,10 @@ while true; do
     if grep -q "\[INFO\] All members have completed their tasks" "$log_file" 2>/dev/null; then
         echo "Detected completion in $log_file, checking $next_log_file..."
         sleep 3
-        # check if the next log file is created, if not, send Ctrl+C to tmux window 'chimera'
+        # check if the next log file is created, if not, send Ctrl+C to tmux window 'morpheus'
         if [ ! -f "$next_log_file" ]; then
-            echo "$next_log_file not found, sending Ctrl+C to tmux window 'chimera'"
-            tmux send-keys -t chimera C-c ENTER
+            echo "$next_log_file not found, sending Ctrl+C to tmux window 'morpheus'"
+            tmux send-keys -t morpheus C-c ENTER
         else
             echo "$next_log_file already exists, nothing to do."
         fi

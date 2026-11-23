@@ -24,7 +24,10 @@ import config
 from task import run_task
 from member_email import get_email_members, get_email_content, reply_email_content
 from daily_plan_update import update_daily_schedule
+from deepseek_search import DeepSeekSearchError, format_search_context, search_web
 from foundation_model import run_llm
+from behavior_router import BehaviorRouter, BehaviorDecision
+from agent_registry import AgentRegistry, agent_audit_context, append_agent_audit_event
 
 nest_asyncio.apply()
 
@@ -45,18 +48,60 @@ def loaf_browse_in_process(
     log_dir,
     task_id,
     output_dir,
+    agent_profile=None,
+    caller_agent_profile=None,
 ):
     # TODO: promtpt can be refined
+    query = f"{interests} {member_role}"
+    try:
+        search_context = format_search_context(search_web(query, ori_question=query))
+    except DeepSeekSearchError as error:
+        search_context = f"DeepSeek Search was unavailable: {error}"
     task = f"""You are {member_name} and you are the {member_role} in your company.
                 You are a {personality} person. Your MBTI is {mbti}. and your interests are {interests}.
                 You are loafing around during the work and browsing the internet.
-                Please feel free to browse the websites and find some interesting content based on your interests and preferences.
+                Use the following DeepSeek Search results as the content you viewed.
+                Do not claim to have visited a URL that is absent from these results.
+                DeepSeek Search results:
+                {search_context}
                 Please summarize the content you viewed into few sentences"""
-    run_task(week, date, task, member_id, log_dir, task_id, output_dir=output_dir)
+    run_task(
+        week,
+        date,
+        task,
+        member_id,
+        log_dir,
+        task_id,
+        output_dir=output_dir,
+        agent_profile=agent_profile,
+        execution_mode="personal_agent",
+        caller_agent_profile=caller_agent_profile,
+    )
 
 
-def run_task_in_process(week, date, task, member_id, log_dir, task_id, output_dir):
-    run_task(week, date, task, member_id, log_dir, task_id, output_dir=output_dir)
+def run_task_in_process(
+    week,
+    date,
+    task,
+    member_id,
+    log_dir,
+    task_id,
+    output_dir,
+    agent_profile=None,
+    caller_agent_profile=None,
+):
+    run_task(
+        week,
+        date,
+        task,
+        member_id,
+        log_dir,
+        task_id,
+        output_dir=output_dir,
+        agent_profile=agent_profile,
+        execution_mode="enterprise_agent",
+        caller_agent_profile=caller_agent_profile,
+    )
 
 
 ### system configurations
@@ -103,6 +148,8 @@ def purturbation_schedule(schedule):
             print(task)
             print(schedule)
         time_str = task["Time"].strip()
+        if "-" in time_str:
+            time_str = time_str.split("-", 1)[0].strip()
         parts = time_str.split(":")
         if len(parts) == 2:
             fmt = "%H:%M"
@@ -111,7 +158,7 @@ def purturbation_schedule(schedule):
         else:
             raise ValueError(f"Invalid time format: {time_str}")
         # Parse the time string into a datetime object
-        task_time = datetime.strptime(task["Time"], fmt)
+        task_time = datetime.strptime(time_str, fmt)
         purturbation_time = timedelta(
             minutes=random.randint(-10, 10), seconds=random.randint(-30, 30)
         )
@@ -142,6 +189,13 @@ class Member:
         self.member_profile = member_config
         self.member_id_list = member_id_list
         self.id_role_map = id_role_map
+        self.agent_registry = AgentRegistry.load(
+            config.agent_registry_path,
+            member_id_list,
+        )
+        self.employee_agent_profile = self.agent_registry.resolve(
+            member_id, "employee_personal", "schedule"
+        ).to_dict()
 
         self.name = member_config["name"]
         self.id = member_id
@@ -184,6 +238,7 @@ class Member:
 
         self.loaf_rate = config.loaf_rate
         self.loaf_interval = config.loaf_interval  # minutes
+        self.behavior_router = BehaviorRouter(self.loaf_rate)
 
         self.reply_lock = False
         self.next_reply_time = None
@@ -286,7 +341,10 @@ class Member:
             json.dump(summary_data, f, indent=4, ensure_ascii=False)
         print(f"[INFO] {self.id} daily summary saved: week {self.week} - {self.date}.")
 
-    def send_email(self, activity, current_time):
+    def send_email(
+        self, activity, current_time, agent_profile=None, caller_agent_profile=None
+    ):
+        caller_agent_profile = caller_agent_profile or self.employee_agent_profile
         recipient_ids = get_email_members(
             activity, self.member_profile, self.member_id_list
         )
@@ -309,7 +367,33 @@ class Member:
                 )
 
         # log the email
-        self.email_logging(datetime.now(), current_time, email_info)
+        self.email_logging(
+            datetime.now(),
+            current_time,
+            email_info,
+            agent_profile,
+            caller_agent_profile,
+        )
+        if agent_profile:
+            append_agent_audit_event(
+                self.root_log_dir,
+                {
+                    "event_type": "email_dispatched",
+                    "member_id": self.id,
+                    "week": self.week,
+                    "date": self.date,
+                    "sim_timestamp": current_time.strftime("%H:%M:%S"),
+                    "agent": agent_profile,
+                    "recipients": recipient_ids,
+                    "subject": subject,
+                    **agent_audit_context(
+                        caller_agent_profile,
+                        agent_profile,
+                        human_principal=self.id,
+                        execution_mode="enterprise_agent",
+                    ),
+                },
+            )
 
     def reply_email_worker(self, incom_email_data, current_time):
         # thin wrapper so a failed reply can never strand the in-flight flag
@@ -349,7 +433,34 @@ class Member:
             )
 
             # log the email
-            self.email_logging(datetime.now(), current_time, email_info)
+            agent_profile = self.agent_registry.resolve(self.id, "enterprise_agent", "email")
+            caller_agent_profile = self.employee_agent_profile
+            self.email_logging(
+                datetime.now(),
+                current_time,
+                email_info,
+                agent_profile.to_dict(),
+                caller_agent_profile,
+            )
+            append_agent_audit_event(
+                self.root_log_dir,
+                {
+                    "event_type": "email_dispatched",
+                    "member_id": self.id,
+                    "week": self.week,
+                    "date": self.date,
+                    "sim_timestamp": current_time.strftime("%H:%M:%S"),
+                    "agent": agent_profile.to_dict(),
+                    "recipients": [recipient_id],
+                    "subject": email_info["subject"],
+                    **agent_audit_context(
+                        caller_agent_profile,
+                        agent_profile,
+                        human_principal=self.id,
+                        execution_mode="enterprise_agent",
+                    ),
+                },
+            )
 
             # log the email checking task
             self.schedule_logging(
@@ -388,6 +499,24 @@ class Member:
             self.previous_summary,
         )
         if updated_schedule is not None:
+            append_agent_audit_event(
+                self.root_log_dir,
+                {
+                    "event_type": "schedule_updated",
+                    "member_id": self.id,
+                    "week": self.week,
+                    "date": self.date,
+                    "sim_timestamp": current_time.strftime("%H:%M:%S"),
+                    "agent": self.employee_agent_profile,
+                    "schedule_entry_point": "employee_agent",
+                    **agent_audit_context(
+                        self.employee_agent_profile,
+                        self.employee_agent_profile,
+                        human_principal=self.id,
+                        execution_mode="employee_personal",
+                    ),
+                },
+            )
             # Deliberately do NOT touch the live scheduling state here. This runs
             # in a daemon thread and `current_time` is a snapshot taken before a
             # multi-minute LLM call, by which time the main loop has advanced.
@@ -439,28 +568,126 @@ class Member:
         # loop and the reply thread can allocate concurrently without a lock
         return next(self._task_id_seq)
 
+    def behavior_logging(self, current_time, activity, decision: BehaviorDecision):
+        """Persist the fast-path decision for downstream trajectory analysis."""
+        executor_profile = self.agent_registry.resolve(
+            self.id,
+            decision.execution_mode,
+            decision.action,
+        )
+        caller_profile = self.employee_agent_profile
+        profile = executor_profile.to_dict() if executor_profile else {}
+        audit_context = agent_audit_context(
+            caller_profile,
+            profile,
+            human_principal=self.id,
+            execution_mode=decision.execution_mode,
+        )
+        log_file = os.path.join(self.root_log_dir, "behavior_policy.csv")
+        os.makedirs(os.path.dirname(log_file), exist_ok=True)
+        with SCHEDULE_LOCK:
+            with open(log_file, mode="a", newline="") as csvfile:
+                writer = csv.writer(csvfile)
+                if csvfile.tell() == 0:
+                    writer.writerow(
+                        [
+                            "id",
+                            "sim_timestamp",
+                            "activity",
+                            "category",
+                            "action",
+                            "confidence",
+                            "reason",
+                            "requires_agent",
+                            "execution_mode",
+                            "agent_id",
+                            "agent_type",
+                            "agent_owner_id",
+                            "caller_agent_id",
+                            "caller_agent_type",
+                            "caller_agent_owner_id",
+                            "executor_agent_id",
+                            "executor_agent_type",
+                            "executor_agent_owner_id",
+                            "human_principal",
+                            "delegation_chain",
+                        ]
+                    )
+                writer.writerow(
+                    [
+                        self.id,
+                        current_time.strftime("%H:%M:%S"),
+                        activity,
+                        decision.category,
+                        decision.action,
+                        decision.confidence,
+                        decision.reason,
+                        decision.requires_agent,
+                        decision.execution_mode,
+                        profile.get("agent_id"),
+                        profile.get("agent_type"),
+                        profile.get("owner_id"),
+                        audit_context["caller_agent_id"],
+                        audit_context["caller_agent_type"],
+                        audit_context["caller_agent_owner_id"],
+                        audit_context["executor_agent_id"],
+                        audit_context["executor_agent_type"],
+                        audit_context["executor_agent_owner_id"],
+                        audit_context["human_principal"],
+                        json.dumps(audit_context["delegation_chain"], ensure_ascii=False),
+                    ]
+                )
+        if executor_profile:
+            append_agent_audit_event(
+                self.root_log_dir,
+                {
+                    "event_type": "behavior_routed",
+                    "member_id": self.id,
+                    "week": self.week,
+                    "date": self.date,
+                    "sim_timestamp": current_time.strftime("%H:%M:%S"),
+                    "activity": activity,
+                    "action": decision.action,
+                    "agent": profile,
+                    **audit_context,
+                },
+            )
+
     def execute_task(self, activity, current_time):
         task_id = self.next_task_id()
-        if "break" in activity:
+        decision = self.behavior_router.route_activity(activity, self.login_state)
+        agent = self.agent_registry.resolve(
+            self.id,
+            decision.execution_mode,
+            decision.action,
+        )
+        agent_profile = agent.to_dict() if agent else None
+        self.behavior_logging(current_time, activity, decision)
+        if decision.action == "logout":
             self.logout(datetime.now(), current_time)
             self.can_logout = False
         else:
-            if not self.login_state:
+            if decision.action == "login":
+                self.login(datetime.now(), current_time)
+                self.can_logout = True
+            elif not self.login_state:
                 self.login(datetime.now(), current_time)
                 self.can_logout = True
 
-            if "@" in activity:
+            if decision.action == "email":
                 t = Thread(
                     target=self.send_email,
                     args=(
                         activity,
                         current_time,
+                        agent_profile,
+                        self.employee_agent_profile,
                     ),
                 )
                 t.daemon = True
                 t.start()
 
-            elif "LoafBrowsing" in activity:
+            elif decision.action == "loaf":
                 activity = "loafing around and browsing the internet."
                 process = Process(
                     target=loaf_browse_in_process,
@@ -476,11 +703,13 @@ class Member:
                         self.logging_dir,
                         task_id,
                         self.temp_dir,
+                        agent_profile,
+                        self.employee_agent_profile,
                     ),
                 )
                 process.start()
 
-            else:
+            elif decision.action == "task":
                 process = Process(
                     target=run_task_in_process,
                     args=(
@@ -491,6 +720,8 @@ class Member:
                         self.logging_dir,
                         task_id,
                         self.temp_dir,
+                        agent_profile,
+                        self.employee_agent_profile,
                     ),
                 )
                 process.start()
@@ -524,7 +755,9 @@ class Member:
             # loaf around or logout
             next_task_interval = self.next_task_time - current_time
             if next_task_interval > timedelta(minutes=self.loaf_interval):  # (hours=1)
-                if random.random() > self.loaf_rate:
+                decision = self.behavior_router.route_gap(next_task_interval.total_seconds() / 60)
+                self.behavior_logging(current_time, "idle_gap", decision)
+                if decision.action == "logout":
                     # logout
                     if self.can_logout:
                         self.logout(datetime.now(), current_time)
@@ -554,9 +787,9 @@ class Member:
             # can logout or random browse
             next_task_interval = self.next_task_time - current_time
             if next_task_interval > timedelta(minutes=self.loaf_interval):  # (hours=1)
-                # NOTE: same orientation as move_to_next_task(): loaf_rate is the
-                # probability of loafing, so AFK is the `>` branch
-                if random.random() > self.loaf_rate:
+                decision = self.behavior_router.route_gap(next_task_interval.total_seconds() / 60)
+                self.behavior_logging(current_time, "idle_gap", decision)
+                if decision.action == "logout":
                     # logout
                     if self.can_logout:
                         self.logout(datetime.now(), current_time)
@@ -748,7 +981,14 @@ class Member:
                     ]
                 )
 
-    def email_logging(self, real_time, sim_time, email_info):
+    def email_logging(
+        self,
+        real_time,
+        sim_time,
+        email_info,
+        agent_profile=None,
+        caller_agent_profile=None,
+    ):
         log_file = os.path.join(self.root_log_dir, "email.csv")  # shared by all members
         real_timestamp = real_time.strftime("%Y-%m-%d %H:%M:%S")
         sim_timestamp = sim_time.strftime("%H:%M:%S")
@@ -775,6 +1015,15 @@ class Member:
                             "email_cc",
                             "subject",
                             "content",
+                            "agent_id",
+                            "agent_type",
+                            "agent_owner_id",
+                            "caller_agent_id",
+                            "caller_agent_type",
+                            "caller_agent_owner_id",
+                            "executor_agent_id",
+                            "executor_agent_type",
+                            "executor_agent_owner_id",
                         ]
                     )
                 writer.writerow(
@@ -790,6 +1039,15 @@ class Member:
                         .replace("\\", "\\\\")
                         .replace("\n", "\\n")
                         .replace("\r", "\\r"),
+                        (agent_profile or {}).get("agent_id"),
+                        (agent_profile or {}).get("agent_type"),
+                        (agent_profile or {}).get("owner_id"),
+                        (caller_agent_profile or self.employee_agent_profile).get("agent_id"),
+                        (caller_agent_profile or self.employee_agent_profile).get("agent_type"),
+                        (caller_agent_profile or self.employee_agent_profile).get("owner_id"),
+                        (agent_profile or {}).get("agent_id"),
+                        (agent_profile or {}).get("agent_type"),
+                        (agent_profile or {}).get("owner_id"),
                     ]
                 )
 

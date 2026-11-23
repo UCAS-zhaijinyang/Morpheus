@@ -1,0 +1,6 @@
+# DeepSeek Harness Python SDK and its matching local runtime.
+deepseek-harness-sdk==0.2.2rc2
+json5
+nest-asyncio
+python-dotenv
+tqdm

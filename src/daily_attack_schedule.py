@@ -25,7 +25,7 @@ def attack_daily_schedule_with_gpt(
                             The goal of your company is {config.goal}\n\n
                             You are the employee of the company, **but also you are the ATTACKER**.
                             The goal of your attack is to {attack_info['what']}. The attack behavior includes {attack_info['how']}. You should consider the attack behavior as your own work.\n\n
-                            The working hours for your company are 08:00 - 18:00 (with lunch time from 12:00-14:00), while you can arrange your work based on your personal preferences.
+                            The working hours for your company are {config.workday_start} - {config.workday_end} (with lunch time from 12:00-14:00), while you can arrange your work based on your personal preferences.
                             **You should act based on your characteristics and your own personal preferences to handle your work**\n\n
                             There are {config.employee_number} members in your company, and the detailed role distribution can be found as follows: {id_role_map}.\n\n
                             You can contact your colleagues if you require external support or data/information from them. Since **all contact will be conducted through email communication**, such activity just needs to specify @ (do not specify their names but just specify the id).
@@ -35,10 +35,11 @@ def attack_daily_schedule_with_gpt(
                             **Note that you just need to reply the python JSON schedule, do not reply any other content**.
                             **Note you should consider your working time based on your personal preferences (whether to work after the working hours or not)**\n\n
                             The overall attack information is as follows: {attack_info}.\n\n
-                            ** You are HIGHLY recommended to NOT work after 18:00, but if you have to, please consider you personality in arranging your schedule. If you think you are off work, then you do not need to reply or arrange new tasks afterwards in your schedule**\n\n
+                            Treat the organization_constraints, agent_context, provenance_requirements, and counterfactual_design fields in the attack information as mandatory simulation constraints. Preserve the employee role, department and project purpose, workflow dependencies, approval or delegation scope, and current time context. For every attack activity, make the human principal, Agent executor, relevant source or skill, authorization decision, and recipient or state change observable in the activity description. Do not invent contacts or permissions outside the provided role map and scenario context.\n\n
+                            ** You are HIGHLY recommended to NOT work after {config.workday_end}, but if you have to, please consider you personality in arranging your schedule. If you think you are off work, then you do not need to reply or arrange new tasks afterwards in your schedule**\n\n
                             **You should organize your activity timetable into a JSON format for the whole week with the necessary keys including \\\"Time\\\" and \\\"Activity\\\"**\n\n
                             For the scheduled activities which involves with the attack/threat behaviors, **You must include another key titled "Attack"**
-                            The example format can be found as follows: \n{{\n[\\{{\n      \"Time\": \"08:00\",\n      \"Activity\": \"Log in to the OA system, check emails, and review the week's goals\"\n    }},\n    {{\n      \"Time\": \"09:00\",\n   \"Attack\": \"True\",\n      \"Activity\": \"contact @Designer to ask about the classified design note of the company.\"\n    }}]\n}}\n\n
+                            The example format can be found as follows: \n{{\n[\\{{\n      \"Time\": \"{config.workday_start}\",\n      \"Activity\": \"Log in to the OA system, check emails, and review the week's goals\"\n    }},\n    {{\n      \"Time\": \"{config.workday_start}\",\n   \"Attack\": \"True\",\n      \"Activity\": \"contact @Designer to ask about the classified design note of the company.\"\n    }}]\n}}\n\n
                             The response should be in the JSON format, with very detailed information regarding on what time, specifically what you've done."""
     user_prompt = f"""Your previous schedule is {initial_schedule}. The detailed attack information is {attack_info}."""
 
@@ -123,6 +124,6 @@ if __name__ == "__main__":
     week = 1
     date = "Friday"
     member_id = "cdev-1"
-    attack_id = "gen_attack_1"
+    attack_id = "threat_ai_data_boundary"
 
     update_daily_schedule_with_attack(week, date, member_id, attack_id, id_role_map)

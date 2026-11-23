@@ -3,9 +3,9 @@
 #
 # SPDX-License-Identifier: MIT
 # ==============================================================================
-from openai import OpenAI
 import os
 import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import config
 from foundation_model import run_llm
@@ -62,6 +62,12 @@ def summarize_weekly_schedule(meeting_log_dir:str, id_list, id_role_map:dict, we
     with open(os.path.join(json_path), "w") as f:
         json.dump(data, f, indent=4)
 
+
+def _summarize_week(job):
+    meeting_log_dir, id_list, id_role_map, week_id = job
+    summarize_weekly_schedule(meeting_log_dir, id_list, id_role_map, week_id)
+    return week_id
+
 if __name__ == "__main__":
 
     ########################
@@ -81,8 +87,16 @@ if __name__ == "__main__":
             id_list.append(member_profile['id'])
     ########################
 
-    week_id = 1
-    for i in range(1, config.period + 1):
-        week_id = i
-        print(f"### Summarizing schedule for week {week_id} ###")
-        summarize_weekly_schedule(config.meeting_log_dir, id_list, id_role_map, week_id)
+    if config.scale_isolate_harness_home:
+        os.environ.setdefault("MORPHEUS_DSH_ISOLATE_HOME", "1")
+    jobs = [
+        (config.meeting_log_dir, id_list, id_role_map, week_id)
+        for week_id in range(1, config.period + 1)
+    ]
+    with ThreadPoolExecutor(
+        max_workers=config.scale_worker_count,
+        thread_name_prefix="morpheus-summary",
+    ) as executor:
+        futures = [executor.submit(_summarize_week, job) for job in jobs]
+        for future in as_completed(futures):
+            print(f"### Summarized schedule for week {future.result()} ###")

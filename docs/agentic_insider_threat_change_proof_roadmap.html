@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent-mediated Insider Threat · 结构性变化证明 Road Map</title>
+  <style>
+    :root{--ink:#182235;--muted:#5b6879;--line:#d9e2ec;--bg:#f5f7fb;--card:#fff;--blue:#1d4ed8;--navy:#172554;--cyan:#0e7490;--green:#15803d;--amber:#a16207;--red:#b91c1c;--violet:#6d28d9}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+    main{max-width:1220px;margin:auto;padding:32px 22px 72px}
+    .hero{padding:42px 46px;color:#fff;border-radius:22px;background:linear-gradient(135deg,var(--navy),var(--cyan));box-shadow:0 18px 46px #0f172a25}
+    .eyebrow{font-size:12px;letter-spacing:.14em;opacity:.78}.hero h1{font-size:35px;line-height:1.25;margin:10px 0 13px}.hero p{max-width:1000px;color:#e0f2fe;margin:9px 0}.tag{display:inline-block;margin:8px 6px 0 0;padding:3px 10px;border:1px solid #ffffff55;border-radius:99px;font-size:12px}
+    h2{font-size:25px;line-height:1.35;margin:40px 0 13px}h3{font-size:18px;line-height:1.4;margin:0 0 7px}.small{font-size:13px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .card,.note,.road{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:19px;box-shadow:0 4px 14px #17203309}.card p,.note p,.road p{color:var(--muted);margin:7px 0}.card ul,.note ul,.road ul{margin:8px 0 0 19px;padding:0}.card li,.note li,.road li{margin:3px 0}.number{font-size:27px;color:var(--blue);font-weight:800;line-height:1}.note{border-left:4px solid var(--blue)}.note.good{border-left-color:var(--green);background:#f0fdf4}.note.warn{border-left-color:var(--amber);background:#fffbeb}.note.bad{border-left-color:var(--red);background:#fef2f2}.note.violet{border-left-color:var(--violet);background:#faf5ff}
+    .pill,.status{font-size:12px;font-weight:700;border-radius:99px;padding:2px 8px;white-space:nowrap}.pill{display:inline-block;background:#e0f2fe;color:#075985;margin:2px 4px 2px 0}.done{background:#dcfce7;color:#166534}.next{background:#fef3c7;color:#92400e}.open{background:#fee2e2;color:#991b1b}.hyp{background:#ede9fe;color:#5b21b6}.fact{background:#dbeafe;color:#1e3a8a}
+    .table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line)}.table th,.table td{text-align:left;vertical-align:top;padding:11px 12px;border-bottom:1px solid var(--line)}.table th{background:#eff6ff;color:#1e3a8a;font-size:13px}.table tr:last-child td{border-bottom:0}.table td p{margin:0 0 6px}.table td p:last-child{margin-bottom:0}
+    a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}.mono{font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#f1f5f9;border-radius:6px;padding:2px 5px}.formula{background:#0f172a;color:#dbeafe;border-radius:10px;padding:17px 19px;font:14px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace;overflow:auto}.quote{padding:14px 16px;margin:10px 0;border-left:3px solid #93c5fd;background:#f8fbff;color:#334155}.source{font-size:12px;color:var(--muted)}
+    .road{position:relative;margin:12px 0;padding-left:78px}.road:before{content:"";position:absolute;left:30px;top:24px;width:14px;height:14px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 5px #dbeafe}.road:after{content:"";position:absolute;left:36px;top:40px;bottom:-27px;width:2px;background:#bfdbfe}.road:last-child:after{display:none}.stage{position:absolute;left:12px;top:51px;color:var(--blue);font-size:12px;font-weight:800;writing-mode:vertical-rl}.road ul{margin:7px 0 0 18px;padding:0}
+    .arrow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:stretch}.arrow div{position:relative;padding:15px 13px;border:1px solid #c9d8f2;border-radius:12px;background:#f8fbff}.arrow div:not(:last-child):after{content:"→";position:absolute;right:-12px;top:30px;color:var(--blue);font-size:18px;font-weight:800;z-index:2}.arrow strong{display:block;color:var(--blue);font-size:17px}.footer{margin-top:38px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:13px}
+    @media(max-width:920px){.grid4{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr 1fr}.arrow{grid-template-columns:1fr}.arrow div:not(:last-child):after{content:"↓";right:auto;top:auto;bottom:-16px;left:50%}}
+    @media(max-width:600px){main{padding:18px 12px 52px}.hero{padding:28px 23px}.hero h1{font-size:28px}.grid,.grid4{grid-template-columns:1fr}.road{padding-left:62px}}
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div class="eyebrow">MORPHEUS · SECURITY RESEARCH ROAD MAP · 2026-11-20</div>
+    <h1>企业 Agent 是否改变了内部威胁？</h1>
+    <p>本页把“证明”定义为一条可核验、可反驳的结构性论证链。结论不写成“Agent 出现后内部威胁数量一定增加”，而写成：当企业 Agent 获得身份、委托权限、工具调用、跨会话记忆和 Agent 间协作能力后，内部威胁的主体、权限来源、攻击路径、持续性和归因对象不再能由只描述人类账号滥用的传统模型完整表达。</p>
+    <span class="tag">agent-mediated insider threat</span><span class="tag">delegated authority</span><span class="tag">provenance gap</span><span class="tag">counterfactual security evaluation</span>
+  </section>
+
+  <div class="note bad" style="margin-top:18px">
+    <b>当前可以成立的命题边界：</b>已有规范、企业身份治理文档、真实漏洞和 Agent 安全研究共同支持“威胁模型发生结构性扩展”。它们尚不能单独证明 Agent 时代内部威胁发生率、损失规模或检测难度必然上升。后者必须通过匹配场景、单变量干预和跨域检测实验验证。
+  </div>
+
+  <h2>一、先把要证明的命题写清楚</h2>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>命题</th><th>精确定义</th><th>证据状态</th><th>如果不成立，论文如何收缩</th></tr></thead>
+    <tbody>
+      <tr><td><b>H0 · 组织约束变化</b></td><td>同一个资源操作是否构成合法行为，取决于主体、资源、操作、环境条件、部门关系、任务目的和审批路径。Agent 把这些约束带入委托、handoff 和跨部门信息流。</td><td><span class="status fact">NIST ABAC、Zero Trust、企业检测研究支持</span></td><td>若所有资源都能用静态账号权限充分判断，组织图和任务目的不改变授权结果，则组织约束只能作为背景变量。</td></tr>
+      <tr><td><b>H1 · 主体与权限变化</b></td><td>企业 Agent 成为具有独立身份或承载委托身份的非人类执行主体，权限可以沿委托链、角色继承和 Agent 间信任传播。</td><td><span class="status fact">规范与产品证据支持</span></td><td>若 Agent 始终只是无权限的文本界面，则只能研究人类内部威胁的自动化工具。</td></tr>
+      <tr><td><b>H2 · 攻击路径变化</b></td><td>攻击入口从人直接操作和凭证滥用扩展到检索内容、邮件、工具返回值、Agent 消息和记忆写入，危害通过规划和工具链落到企业状态。</td><td><span class="status fact">NIST、AgentDojo、EchoLeak 支持</span></td><td>若所有外部内容都无法进入 Agent 上下文或工具链，则不声称存在 Agent 特有路径。</td></tr>
+      <tr><td><b>H3 · 时间与传播变化</b></td><td>一次输入或一次记忆污染可以跨会话、跨 Agent 或跨工具继续影响后续行为，威胁状态不再只绑定单次人工操作。</td><td><span class="status fact">OWASP 2026 分类支持，需在 Morpheus 中实证</span></td><td>若记忆完全隔离、短期有效且每步重新授权，则只保留委托权限扩展。</td></tr>
+      <tr><td><b>H4 · 归因变化</b></td><td>同一工具动作可能同时关联人类发起者、Agent 身份、运行时身份、委托令牌、上游输入和记忆来源，单一账号到人的归因关系出现缺口。</td><td><span class="status hyp">规范提出，需实验验证</span></td><td>若每个动作都有不可伪造的来源、意图和权限链，则研究重点转为可审计性而非归因缺失。</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">H0–H4 是结构性变化命题。它们与“风险一定变大”或“所有 Agent 攻击都属于内部威胁”不同。后两项不能从本页证据直接推出。</p>
+
+  <h2>二、传统内部威胁模型提供什么基线</h2>
+  <div class="grid">
+    <article class="card"><div class="number">01</div><h3>主体是具有授权访问的人员</h3><p>CISA 将 insider 定义为现在或曾经对组织资源具有授权访问或知识的人员，insider threat 是其利用这种授权访问或组织知识造成损害的可能性，行为可以是有意或无意的。</p><p class="source">来源：<a href="https://www.cisa.gov/topics/physical-security/insider-threat-mitigation">CISA Insider Threat Mitigation</a></p></article>
+    <article class="card"><div class="number">02</div><h3>行为围绕账号和资源展开</h3><p>MITRE ATT&amp;CK 的 Valid Accounts 描述了对现有账号凭证的滥用，包括初始访问、持久化、权限提升和防御规避。合法访问本身也可能被用来降低被发现的概率。</p><p class="source">来源：<a href="https://attack.mitre.org/techniques/T1078/">MITRE ATT&amp;CK T1078</a></p></article>
+    <article class="card"><div class="number">03</div><h3>数据集以行为日志为主</h3><p>CERT Insider Threat Test Dataset 提供背景行为和恶意行为的合成数据，适合校准登录、文件、邮件等传统活动，却没有完整的 Agent 身份、委托链、工具规划和记忆写入状态。</p><p class="source">来源：<a href="https://www.sei.cmu.edu/library/insider-threat-test-dataset/">CMU SEI CERT Insider Threat Test Dataset</a></p></article>
+  </div>
+  <div class="quote">因此，传统模型可以表达“员工滥用合法访问”。它不能自动表达“谁把什么权限委托给哪个 Agent、Agent 使用了哪个运行时身份、哪条外部内容导致了哪次工具调用、该状态是否在后续会话继续存在”。这组缺失变量就是需要证明的模型扩展点。</div>
+
+  <h3>组织约束不是背景变量，而是合法性的状态变量</h3>
+  <div class="grid">
+    <article class="card"><h3>授权由多个属性共同决定</h3><p>NIST SP 800-162 将 ABAC 定义为根据主体、对象、请求操作、环境条件以及策略、关系评估授权。员工角色和 Agent 身份因此不能脱离资源、操作、时间和环境单独解释。</p><p class="source">来源：<a href="https://csrc.nist.gov/pubs/sp/800/162/upd2/final">NIST SP 800-162</a></p></article>
+    <article class="card"><h3>企业访问围绕资源和工作流</h3><p>NIST SP 800-207 将用户、资产、资源和工作流纳入 Zero Trust 架构，并强调不能仅凭网络位置或资产归属产生隐式信任。组织依赖和工作流目的应进入授权判断。</p><p class="source">来源：<a href="https://csrc.nist.gov/pubs/sp/800/207/final">NIST SP 800-207</a></p></article>
+    <article class="card"><h3>检测也需要用户–资源上下文</h3><p>USENIX Security 2026 的 Facade 在企业文档、SQL 表和 HTTP/RPC 日志中联合建模用户与资源上下文。Selling the Dream 则显示身份关系和可见性变化会改变小型企业的内部风险。</p><p class="source">来源：<a href="https://www.usenix.org/conference/usenixsecurity26/presentation/kantchelian">Facade</a> · <a href="https://www.usenix.org/conference/usenixsecurity26/presentation/sabri">Selling the Dream</a></p></article>
+  </div>
+  <div class="note good"><b>对 Morpheus 的含义：</b>组织图、部门所有权、汇报路径、项目目的、审批链和临时委托决定了一步行为的合法解释。T2 的安全性不在于“员工访问了别的部门”，而在于多个局部合法请求被组合成偏离原始目的的信息流。T1 和 T3 也分别需要数据边界和技能来源的组织范围。</div>
+
+  <h2>三、结构变化来自哪些新的系统原语</h2>
+  <div class="arrow">
+    <div><strong>企业 Agent 身份</strong><span>Agent 被纳入身份、生命周期和资源访问治理。</span></div>
+    <div><strong>委托与继承</strong><span>Agent 可代表用户或上游 Agent 获取受限或继承的权限。</span></div>
+    <div><strong>工具与 API</strong><span>模型输出进入邮件、文件、日历、数据库等状态变更链路。</span></div>
+    <div><strong>记忆与消息</strong><span>上下文、技能和 Agent 间消息可能跨会话或跨主体传播。</span></div>
+    <div><strong>归因与审计</strong><span>动作需要同时追溯主体、来源、意图、授权和运行时。</span></div>
+  </div>
+  <p>这不是把“Agent”当作新的员工类别，而是把原来的 <span class="mono">human → authorized action</span> 扩展成一条带状态和来源的执行链。</p>
+  <pre class="formula">传统：   human principal → account/permission → resource action → harm
+扩展：   source/input → human or agent context → delegated identity
+         → planning → tool/API call → enterprise state or data flow
+         → memory/message persistence → later action → harm
+
+需要记录：principal, agent_id, runtime_id, session_id, delegation_chain,
+          tool, input_provenance, memory_write, policy_decision, result</pre>
+
+  <h2>四、六条独立证据链</h2>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>证据链</th><th>可直接观察的事实</th><th>支持的推断</th><th>不能推出的结论</th><th>对 Morpheus 的更新</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>E0<br>组织约束决定合法性</b><br><span class="status fact">访问控制与企业检测证据</span></td>
+        <td>NIST ABAC 将主体、对象、操作和环境条件纳入授权策略。NIST Zero Trust 把用户、资产、资源和工作流作为保护对象。Facade 在企业日志中联合使用用户与资源上下文。</td>
+        <td>组织角色、部门所有权、任务目的、审批关系和时间窗口不是日程装饰，而是判断“合法访问是否偏离目的”的状态变量。</td>
+        <td>这些来源不能证明某个组织图一定比另一个组织图更真实，也不能单独证明层级会议生成的轨迹质量更高。</td>
+        <td>所有三个 JSON 场景都增加 organization_constraints、department ownership、purpose、approval/delegation 和 matched-pair control。</td>
+      </tr>
+      <tr>
+        <td><b>E1<br>Agent 已进入企业身份治理</b><br><span class="status fact">行业基础设施证据</span></td>
+        <td>Microsoft Entra Agent ID 文档把 AI Agent 的身份、所有者、生命周期、访问包和资源保护纳入企业级身份管理，明确提出管理、治理和保护 Agent identities。</td>
+        <td>企业 Agent 已经被设计成需要独立治理的非人类身份，权限来源不能只用员工账号解释。</td>
+        <td>不能据此证明所有企业都已采用相同架构，也不能证明威胁发生率上升。</td>
+        <td>日志加入 Agent identity、owner/sponsor、runtime、token scope 和 delegation chain。</td>
+      </tr>
+      <tr>
+        <td><b>E2<br>Agent 安全规范新增专门风险</b><br><span class="status fact">安全分类证据</span></td>
+        <td>OWASP Agentic Applications Top 10 2026 单独列出 Identity &amp; Privilege Abuse、Memory &amp; Context Poisoning、Insecure Inter-Agent Communication 和 Tool Misuse。</td>
+        <td>动态信任、委托权限、缓存凭证、共享记忆和跨 Agent 消息已经被安全框架视为不同的风险结构。</td>
+        <td>分类本身不是事故频率统计，也不是对 Morpheus 生成轨迹质量的验证。</td>
+        <td>攻击模板从“员工做了什么”扩展为“权限如何传播、内容如何入上下文、记忆如何持久化、消息如何影响下游 Agent”。</td>
+      </tr>
+      <tr>
+        <td><b>E3<br>标准风险模型确认数据与人机交互边界改变</b><br><span class="status fact">政府风险框架证据</span></td>
+        <td>NIST AI 600-1 将 Data Privacy、Human-AI Configuration 和 Information Security 作为风险视角，并指出 GAI 扩大攻击面，间接 prompt injection 可以通过被检索数据远程影响集成应用。</td>
+        <td>风险入口可以位于外部数据，危害通过人机配置、模型上下文和互联系统传递。</td>
+        <td>不能据此证明某个具体 Agent 一定会执行攻击，也不能取代企业数据上的干预实验。</td>
+        <td>把 input source、retrieval、context、tool action 和 data flow 作为同一条可审计轨迹。</td>
+      </tr>
+      <tr>
+        <td><b>E4<br>生产系统出现跨信任边界案例</b><br><span class="status fact">真实漏洞与事件证据</span></td>
+        <td>EchoLeak 研究描述了针对 Microsoft 365 Copilot 的 zero-click prompt injection。NVD 记录 CVE-2025-32711 为未授权攻击者通过网络披露信息，论文描述单封构造邮件触发远程数据外泄，且不需要用户交互。</td>
+        <td>攻击来源、执行主体和数据权限可以分离。外部内容可以借助企业 Agent 的内部访问能力完成数据流出。</td>
+        <td>EchoLeak 不是传统定义下的员工内部威胁事件。它证明的是 Agent-mediated threat path，不能直接证明员工恶意行为增多。</td>
+        <td>内部威胁标签必须区分 source、authorized principal、agent executor 和 affected resource。</td>
+      </tr>
+      <tr>
+        <td><b>E5<br>工具型 Agent 的攻击面可重复实验</b><br><span class="status fact">学术实验室证据</span></td>
+        <td>AgentDojo 在邮件、银行和旅行等任务中评测工具调用，包含 97 个任务和 629 个安全测试案例，研究外部工具返回数据对 Agent 的 prompt injection 影响。</td>
+        <td>攻击路径位于“外部数据 → Agent reasoning → tool call → 环境状态”，不只位于用户输入框。</td>
+        <td>AgentDojo 的环境不包含企业部门层级、员工日程和内部威胁标签。</td>
+        <td>采用执行器验证工具前置条件、后置状态和每一步 provenance，不使用最终文本作为唯一标签。</td>
+      </tr>
+    </tbody>
+  </table></div>
+  <p class="source">来源：<a href="https://csrc.nist.gov/pubs/sp/800/162/upd2/final">NIST SP 800-162</a> · <a href="https://csrc.nist.gov/pubs/sp/800/207/final">NIST SP 800-207</a> · <a href="https://www.usenix.org/conference/usenixsecurity26/presentation/kantchelian">Facade</a> · <a href="https://www.usenix.org/conference/usenixsecurity26/presentation/sabri">Selling the Dream</a> · <a href="https://learn.microsoft.com/en-us/entra/agent-id/">Microsoft Entra Agent ID</a> · <a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/">OWASP Agentic Applications 2026</a> · <a href="https://doi.org/10.6028/NIST.AI.600-1">NIST AI 600-1</a> · <a href="https://nvd.nist.gov/vuln/detail/CVE-2025-32711">NVD CVE-2025-32711</a> · <a href="https://arxiv.org/abs/2509.10540">EchoLeak</a> · <a href="https://arxiv.org/abs/2406.13352">AgentDojo</a></p>
+
+  <h2>五、为什么这不是“把几个工程模块拼起来”</h2>
+  <div class="grid4">
+    <article class="card"><h3>层级会议</h3><p>工程实现是分层生成日程。科学变量是组织目标、依赖和授权如何传播到个人轨迹。</p><span class="pill">constraint propagation</span></article>
+    <article class="card"><h3>快速路由</h3><p>工程实现是区分简单和复杂行为。科学变量是风险、复杂度和不确定性如何改变执行策略与成本。</p><span class="pill">risk-aware control</span></article>
+    <article class="card"><h3>人–Agent 协作</h3><p>工程实现是 Planner 与 Tool Agent 的 handoff。科学变量是意图、委托和执行动作之间的可观测偏差。</p><span class="pill">authority-aware handoff</span></article>
+    <article class="card"><h3>Skill/Memory</h3><p>工程实现是保存可复用流程。科学变量是来源、权限范围、有效期和污染状态如何决定复用结果。</p><span class="pill">provenance-constrained reuse</span></article>
+  </div>
+  <div class="note violet"><b>论文真正要证明的关系：</b>去掉或改变某一个组织/权限/记忆变量后，轨迹的结构性质会按可预期方向变化。模块只有在承载这些变量、产生可复现实验差异时，才从实现细节变成方法的一部分。</div>
+
+  <h2>六、Agent-mediated insider threat 的形式化定义</h2>
+  <pre class="formula">G = organization graph             组织层级、部门所有权和依赖关系
+K = organizational constraints     角色、目的、审批、时间和资源范围
+H = human insider                 人类内部主体
+A = authorized enterprise agent   被企业授权的 Agent
+C = compromised context           被操纵的输入、检索内容、记忆或消息
+P = delegated privilege            委托或继承的权限
+U = tool/API execution             对企业工具或系统的调用
+M = persistent/shared state        跨会话、跨 Agent 的记忆或流程状态
+
+授权判断：        Policy(subject, object, operation, environment, K, G)
+传统内部威胁：  H + authorized_access(G, K) + misuse → harm
+Agent-mediated： (H | A | C) + P + U + (optional M)
+                  + unauthorized data flow or state change → harm</pre>
+  <p>这里的 <span class="mono">C</span> 不等于内部人员。它表示威胁上下文可能被外部内容操纵。为了保持内部威胁定义的严谨性，论文应把“攻击来源”和“执行所用的企业授权”分开标注。只有当危害依赖企业内部的授权、信息或 Agent 执行链时，才把该样本纳入 agent-mediated insider threat 评测。</p>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>维度</th><th>传统内部威胁</th><th>Agent-mediated 威胁</th><th>需要新增的观测字段</th></tr></thead>
+    <tbody>
+      <tr><td>主体</td><td>员工、承包商、合作方或服务账号</td><td>人、授权 Agent、被操纵 Agent、人–Agent 组合</td><td><span class="mono">human_id, agent_id, runtime_id</span></td></tr>
+      <tr><td>权限</td><td>直接持有或滥用账号权限</td><td>委托、继承、跨 Agent 传播、缓存凭证</td><td><span class="mono">delegation_chain, token_scope, policy_decision</span></td></tr>
+      <tr><td>入口</td><td>登录、文件、邮件、网络和设备活动</td><td>邮件内容、检索结果、工具返回、Agent 消息、记忆写入</td><td><span class="mono">source, retrieval_id, context_id, memory_write</span></td></tr>
+      <tr><td>动作</td><td>单个账号执行的资源操作</td><td>规划、handoff、工具链、API 链和跨部门信息流</td><td><span class="mono">plan_step, handoff, tool_call, data_flow</span></td></tr>
+      <tr><td>持续性</td><td>单次或周期性账号行为</td><td>跨会话记忆、共享技能、跨 Agent 消息和长期流程漂移</td><td><span class="mono">session_id, memory_scope, skill_version</span></td></tr>
+      <tr><td>归因</td><td>账号与人的关联</td><td>来源、用户、Agent、运行时和委托链的联合关联</td><td><span class="mono">provenance_graph, attribution_confidence</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>七、证明流程 Road Map</h2>
+  <div class="road"><span class="stage">R0</span><h3>锁定命题和术语边界 <span class="status done">已完成</span></h3><p>把命题从“内部威胁变多”收敛为“组织约束、攻击主体、权限承载、路径、持续性和归因结构扩展”。明确“Agent 攻击”不自动等于“内部威胁”，必须同时检查企业授权或内部信息依赖。</p><ul><li>产物：H0–H4、传统模型与扩展模型、反驳条件。</li><li>更新来源：CISA 定义、MITRE Valid Accounts、NIST ABAC、NIST Zero Trust、现有 <a href="research_road_icml2027.html">ICML 研究路线</a>。</li></ul></div>
+  <div class="road"><span class="stage">R1</span><h3>建立传统基线 <span class="status done">已完成</span></h3><p>用 CISA、CERT 和 MITRE 描述传统内部威胁的主体、授权访问、资源操作与行为检测对象。把 CERT 作为行为锚点，而不是假设它包含 Agent 轨迹。</p><ul><li>产物：基线字段表、传统轨迹 schema、可对齐的登录/文件/邮件特征。</li><li>更新程度：已确认传统数据适合做时间、通信和资源访问分布校准，不能提供完整的 Agent 意图和委托来源。</li></ul></div>
+  <div class="road"><span class="stage">R2</span><h3>证明企业系统已经出现新的身份承载 <span class="status done">已完成</span></h3><p>用 Microsoft Entra Agent ID 说明企业基础设施正在为 Agent 提供身份、生命周期和资源访问治理。用 OWASP ASI03 补充动态信任、委托权限、继承凭证和 attribution gap 的安全含义。</p><ul><li>产物：Agent identity、runtime、session、delegation chain 字段设计。</li><li>更新程度：H1 获得行业基础设施和安全规范的双重支持，尚未获得 Morpheus 数据上的行为统计支持。</li></ul></div>
+  <div class="road"><span class="stage">R3</span><h3>证明攻击路径不再只经过人类直接操作 <span class="status done">已完成</span></h3><p>用 NIST AI 600-1 的间接 prompt injection 描述、Greshake 的间接注入研究和 AgentDojo 的工具型测试，建立“外部数据 → Agent 上下文 → 工具执行”的可重复路径。</p><ul><li>产物：输入来源、检索、上下文、工具调用和状态变化的 typed event graph。</li><li>更新程度：H2 获得规范与实验研究支持。AgentDojo 不包含企业组织结构，因此企业内生路径仍需要自建沙箱验证。</li></ul></div>
+  <div class="road"><span class="stage">R4</span><h3>用真实生产案例验证边界穿越 <span class="status done">已完成</span></h3><p>用 EchoLeak 作为边界案例。它显示未授权外部攻击者可以通过一封构造邮件触发企业 Copilot 的数据外泄链。论文中把它作为“来源与执行权限分离”的证据，不把它改写成员工内部威胁案例。</p><ul><li>产物：source–principal–executor–resource 四元标注。</li><li>更新程度：H1/H2 得到生产漏洞支撑，H3/H4 仍需在受控环境中做持续性和归因实验。</li></ul></div>
+  <div class="road"><span class="stage">R5</span><h3>构造同状态反事实实验 <span class="status next">待实现</span></h3><p>固定组织图、员工画像、日程、工具和初始状态，分别只改变委托权限、输入来源、记忆写入、Agent 间消息或内部意图，生成 benign / agent-mediated / insider 成对轨迹。</p><ul><li>问题：单一干预是否只改变可解释的局部子轨迹？</li><li>指标：权限继承深度、工具可达范围、跨部门数据流、记忆传播长度、归因歧义、未授权动作率。</li></ul></div>
+  <div class="road"><span class="stage">R6</span><h3>在 Morpheus 中实现安全事件溯源 <span class="status next">待实现</span></h3><p>在已有层级会议、行为路由、双 Agent handoff 和 SkillMemory 的最小改动基础上，补齐事件来源和授权链。每个高风险工具事件都必须能回到触发输入、计划步骤、Agent 身份、权限判定和状态结果。</p><ul><li>实现入口：<span class="mono">src/hierarchical_meeting.py</span>、<span class="mono">src/behavior_router.py</span>、<span class="mono">src/skill_memory.py</span> 及现有攻击 JSON schema。</li><li>验收：无来源的记忆写入、无授权的工具调用、无法解释的跨部门读取都应被 verifier 标记。</li></ul></div>
+  <div class="road"><span class="stage">R7</span><h3>验证检测与数据集效用 <span class="status next">待实现</span></h3><p>用当前内部威胁检测方法分别在传统日志、Agent 正常轨迹、Agent-mediated 威胁轨迹和跨组织测试集上评测。检测器表现好，说明生成数据能支撑安全任务。检测器表现差，则分析是分布偏移、归因缺口、长程依赖还是标签不可审计。</p><ul><li>指标：PR-AUC、低误报召回、检测延迟、跨组织泛化、合成训练真实测试、真实训练合成测试。</li><li>不能用单个检测器的高分反向证明轨迹真实，必须先报告轨迹级约束和反事实一致性。</li></ul></div>
+  <div class="road"><span class="stage">R8</span><h3>形成论文级结论 <span class="status hyp">待验证</span></h3><p>只有当 R5–R7 显示新增变量能产生稳定、可解释、跨组织复现的轨迹差异，并且传统模型在这些路径上出现可定位的覆盖缺口，才能写成“企业 Agent 改变了内部威胁模型”。否则按证据收缩为“Agent 扩展了企业安全行为模拟的状态空间”。</p><ul><li>最终主张：结构变化 + 可测量后果 + 可审计生成方法。</li><li>不主张：Agent 必然更危险、内部威胁数量必然增加、所有 Agent 攻击都是 insider threat。</li></ul></div>
+
+  <h2>八、最小实验阶梯：每一步只回答一个问题</h2>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>实验</th><th>问题</th><th>最小设置</th><th>关键指标</th><th>支持哪条命题</th></tr></thead>
+    <tbody>
+      <tr><td><b>Q0 · 组织约束</b></td><td>同一个工具动作在不同部门、任务目的或审批路径下，授权结论是否变化？</td><td>固定主体、对象和操作，只改变部门关系、任务目的、时间窗口或委托范围。</td><td>策略决策差异、角色–资源一致性、依赖路径违反率、信息流越界量。</td><td>H0</td></tr>
+      <tr><td><b>Q0b · 结构可表达性</b></td><td>传统事件 schema 是否无法无损表达 Agent 事件？</td><td>同一个工具动作分别由员工直接执行、员工委托 Agent 执行、跨 Agent 转发执行。</td><td>字段缺失率、来源链完整率、唯一归因率。</td><td>H1、H4</td></tr>
+      <tr><td><b>Q1 · 权限反事实</b></td><td>只改变 delegation scope 是否改变工具可达集合？</td><td>固定组织、目标和输入，分别授予直接权限、最小委托权限、过宽继承权限。</td><td>可达工具数、越权调用率、权限继承深度、状态影响范围。</td><td>H1、H2</td></tr>
+      <tr><td><b>Q2 · 路径反事实</b></td><td>外部内容能否在不改变员工初始目标的情况下改变 Agent 工具动作？</td><td>固定员工任务，替换邮件或检索结果中的一条内容，使用离线企业工具沙箱。</td><td>动作差异、外泄量、跨系统调用数、攻击成功率。</td><td>H2</td></tr>
+      <tr><td><b>Q3 · 持久化反事实</b></td><td>一次记忆或 Skill 写入是否能影响后续会话或其他 Agent？</td><td>比较无记忆、隔离记忆、污染记忆、共享污染记忆。</td><td>影响会话数、传播深度、持续时间、污染复用率。</td><td>H3</td></tr>
+      <tr><td><b>Q4 · 归因反事实</b></td><td>只观察传统账号日志时，能否唯一识别真实执行主体和授权来源？</td><td>隐藏或保留 Agent identity、handoff 和 delegation fields，比较审计器。</td><td>归因准确率、证据链完整率、审计时间、误报归因率。</td><td>H4</td></tr>
+      <tr><td><b>Q5 · 下游安全效用</b></td><td>新增轨迹字段是否改变内部威胁检测的跨域表现？</td><td>传统日志训练/Agent 轨迹测试，反向再做一次，比较现有检测器与加入 provenance 的检测器。</td><td>PR-AUC、低 FPR recall、检测延迟、跨组织性能下降。</td><td>H2–H4 的后果</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>九、什么结果才算“证明成功”</h2>
+  <div class="grid">
+    <article class="card"><h3>必要结果 A · 结构差异</h3><p>在相同组织和目标下，Agent 版本出现可重复的委托链、工具链、记忆状态或跨 Agent 消息，而传统版本没有这些状态。</p></article>
+    <article class="card"><h3>必要结果 B · 因果可控</h3><p>只改变一个变量时，变化集中在预期的权限、数据流或持续性指标上，未授权的副作用可以被执行器发现。</p></article>
+    <article class="card"><h3>必要结果 C · 安全后果</h3><p>传统账号级检测或审计在隐藏 Agent 证据时出现可解释的漏报、延迟或错误归因，加入 provenance 后得到改善。</p></article>
+  </div>
+  <div class="note warn"><b>证伪条件：</b>若所有 Agent 都是无状态、无权限的文本接口；所有高风险动作均需人工逐步确认；不存在跨会话记忆、跨 Agent 委托或跨系统工具链；且传统账号日志能够唯一恢复来源、授权和执行者，则“内部威胁模型发生结构性变化”不成立。此时论文应改为研究 Agent 对传统内部威胁模拟效率的影响。</div>
+
+  <h2>十、参考文献与创新点更新记录</h2>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>来源</th><th>证据类型</th><th>从文献中采用的内容</th><th>创新点更新到什么程度</th><th>剩余工作</th></tr></thead>
+    <tbody>
+      <tr><td><a href="https://www.cisa.gov/topics/physical-security/insider-threat-mitigation">CISA Insider Threat Mitigation</a></td><td>官方定义</td><td>授权访问、组织知识、有意/无意损害和基于行为的识别。</td><td>确定传统内部威胁基线，避免把 Agent 风险直接等同于 insider。</td><td>把 CISA 的 human insider 定义映射到 source/authority/executor 三元组。</td></tr>
+      <tr><td><a href="https://www.sei.cmu.edu/library/insider-threat-test-dataset/">CERT Insider Threat Test Dataset</a></td><td>官方数据说明</td><td>背景行为与恶意行为合成数据，可作传统行为分布锚点。</td><td>确定数据集评测的基线来源，承认其不含完整 Agent provenance。</td><td>做传统日志与 Agent 事件 schema 的可对齐性实验。</td></tr>
+      <tr><td><a href="https://attack.mitre.org/techniques/T1078/">MITRE ATT&amp;CK T1078 Valid Accounts</a></td><td>攻击知识库</td><td>合法凭证可以支持初始访问、持久化、权限提升和规避检测。</td><td>把“合法访问”从员工账号扩展到委托 Agent 权限，但保留传统凭证滥用基线。</td><td>补充 Agent identity 与传统 service account 的边界实验。</td></tr>
+      <tr><td><a href="https://csrc.nist.gov/pubs/sp/800/162/upd2/final">NIST SP 800-162 ABAC</a></td><td>官方访问控制指南</td><td>授权取决于主体、对象、操作、环境条件、策略和关系。</td><td>H0 更新为组织约束命题，组织图、资源归属、任务目的和时间窗口成为显式状态。</td><td>完成 Q0 组织约束实验，证明同一动作在不同上下文下的授权结果变化。</td></tr>
+      <tr><td><a href="https://csrc.nist.gov/pubs/sp/800/207/final">NIST SP 800-207 Zero Trust</a></td><td>官方企业架构指南</td><td>保护用户、资产、资源和工作流，不因网络位置或资产归属产生隐式信任。</td><td>把部门工作流和资源级授权纳入 Agent-mediated threat 定义。</td><td>在 T2 中实现逐次 handoff 的资源和委托检查。</td></tr>
+      <tr><td><a href="https://www.usenix.org/conference/usenixsecurity26/presentation/kantchelian">USENIX Security 2026 Facade</a> · <a href="https://www.usenix.org/conference/usenixsecurity26/presentation/sabri">Selling the Dream</a></td><td>企业检测与组织关系研究</td><td>用户–资源上下文影响内部威胁检测，身份关系和可见性变化会改变内部风险。</td><td>组织约束从“日程真实感”升级为检测和授权解释所需的安全状态。</td><td>做跨部门、长期、逐步合法但组合越界的检测实验。</td></tr>
+      <tr><td><a href="https://learn.microsoft.com/en-us/entra/agent-id/">Microsoft Entra Agent ID</a></td><td>企业身份治理文档</td><td>Agent identity、生命周期、所有者、访问包和资源保护。</td><td>H1 从概念判断更新为企业 IAM 正在提供的系统原语。</td><td>在 Morpheus 中记录 Agent identity、runtime 和 token scope。</td></tr>
+      <tr><td><a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/">OWASP Agentic Applications Top 10 2026</a></td><td>安全框架</td><td>身份与权限滥用、工具误用、记忆/上下文污染、跨 Agent 通信和归因缺口。</td><td>H1–H4 的新变量获得统一安全术语，Skill/Memory 污染不再只是工程 feature。</td><td>用单变量干预测量继承深度、传播范围和持久时间。</td></tr>
+      <tr><td><a href="https://doi.org/10.6028/NIST.AI.600-1">NIST AI 600-1</a></td><td>政府风险框架</td><td>Data Privacy、Human-AI Configuration、Information Security、prompt injection 和 data poisoning。</td><td>把企业数据流和人机协作作为安全状态，而不是单纯模型输出质量。</td><td>把 input provenance 与 data-flow impact 接入 verifier。</td></tr>
+      <tr><td><a href="https://nvd.nist.gov/vuln/detail/CVE-2025-32711">NVD CVE-2025-32711</a> · <a href="https://arxiv.org/abs/2509.10540">EchoLeak</a></td><td>真实漏洞与案例研究</td><td>远程、未认证、无用户交互的数据外泄链，跨越 LLM 信任边界。</td><td>确认 source 与 enterprise-authorized executor 可以分离，形成边界案例。</td><td>不把 EchoLeak 当员工内部威胁标签，改做 matched-path 对照。</td></tr>
+      <tr><td><a href="https://arxiv.org/abs/2406.13352">AgentDojo</a> · <a href="https://arxiv.org/abs/2302.12173">Greshake et al.</a></td><td>Agent 安全实验</td><td>外部工具返回值或检索内容可以影响 Agent 计划、API 调用和数据流。</td><td>H2 更新为“工具链和上下文是攻击路径中的状态节点”。</td><td>加入部门权限、员工日程和内部数据流后做企业专用测试。</td></tr>
+      <tr><td><a href="https://tsrigo.github.io/ICML2026-Guide-CN/">ICML 2026 Guide CN</a> · <a href="research_road_icml2027.html">Morpheus ICML 2027 research road</a></td><td>会议领域与创新审查</td><td>多 Agent、工具、长时攻击、记忆污染、因果安全和反事实评测已有研究。</td><td>确认“层级会议 + Router + 双 Agent + Skill”单点都不足，主贡献必须转为受组织与权限约束的威胁轨迹生成。</td><td>完成 R5–R8 的因果与跨组织实验，避免停留在模块拼接。</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>十一、截至目前的结论</h2>
+  <div class="note good"><b>可以写入论文引言的版本：</b>企业 Agent 把传统内部威胁中的“合法访问主体”扩展为由组织约束、人类主体、Agent 身份、委托权限、工具调用和持久化上下文共同组成的执行链。规范和真实案例显示，这条链引入了新的攻击入口、权限传播方式和归因对象。Morpheus 的研究问题不是生成更多攻击日志，而是在组织约束下生成这类可审计轨迹，并用反事实干预检验新增变量是否造成可解释的安全后果。</div>
+  <div class="note bad"><b>目前仍不能写入论文的版本：</b>Agent 已经导致内部威胁数量增加、损失更大、检测一定更难，或所有 Agent 攻击都应归为内部威胁。这些句子需要 R5–R7 的实验数据，而且 EchoLeak 等外部攻击案例不能直接替代员工内部威胁证据。</div>
+
+  <div class="footer">核验日期：2026-11-20 · 相关路线：<a href="research_road_icml2027.html">ICML 2027 研究路线</a> · <a href="threat_scenario_research_2027.html">三类内部威胁场景研究</a> · <a href="multiagent_dataset_generation_survey.html">多 Agent 数据与轨迹调研</a> · 本页面记录的是证明路线和证据边界，不把尚未运行的实验写成结果。</div>
+</main>
+</body>
+</html>
