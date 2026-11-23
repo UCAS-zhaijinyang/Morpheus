@@ -352,7 +352,7 @@ enabling web tools while preserving local workspace execution.
 
 ## Cleanup
 
-The repository keeps source code, current threat definitions, research documents, and the deepseek-v4.1-flash experiment directories. Python caches, pytest caches, Harness temporary files, and obsolete standalone artifacts are excluded from the working tree. Generated scenario and experiment outputs are ignored by Git and should be archived separately when they are needed for analysis.
+The repository keeps source code, current threat definitions, research documents, and experiment plans. Python caches, pytest caches, Harness temporary files, and obsolete standalone artifacts are excluded from the working tree. Generated scenario and experiment outputs are ignored by Git and should be archived separately when they are needed for analysis.
 
 ---
 

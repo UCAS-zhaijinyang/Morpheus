@@ -37,7 +37,7 @@ for week in ${weeks[@]}; do
 
         # exit checker
         tmux new-session -d -s monitor-$week-$date
-        tmux send -t "monitor-$week-$date" "sleep 60 && bash /data/Morpheus/exit_checker.sh $week $date" ENTER
+        tmux send -t "monitor-$week-$date" "sleep 60 && bash /data/Morpheus/scripts/exit_checker.sh $week $date" ENTER
 
         # run the simulation
         docker exec morpheus bash -c "source /data/Morpheus/.venv/bin/activate && python /data/Morpheus/src/daily_execution_auto.py --date $date --week $week"
