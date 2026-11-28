@@ -1,0 +1,91 @@
+Morpheus-Harness 企业 Agent Harness 内部威胁建模参考文献
+核对日期 2026-11-26
+
+文献编号对应 threat_scenarios/ 下的场景 JSON 和同目录的建模明细表。每条注明原文支持的机制和它在模拟器中的用途。15 种业务变体以企业工单为例构造，具体卡片、收件区和归档状态由 Morpheus-Harness 定义。
+
+一、内部威胁和业务后果
+
+[R1] National Institute of Standards and Technology. Standards for Security Categorization of Federal Information and Information Systems. FIPS 199, 2004.
+NIST 标准的安全目标定义给出保密性、完整性和可用性三条轴。Morpheus-Harness 将保密性进一步按接收方越界与收集对象越界区分。来源：https://csrc.nist.gov/pubs/fips/199/final
+
+[R2] Software Engineering Institute, Carnegie Mellon University. Common Sense Guide to Mitigating Insider Threats, Seventh Edition. SEI Report, 2022.
+SEI 报告摘要将授权访问的滥用与组织风险联系起来。本文借此限定内部贡献者与企业资产之间的关系。来源：https://www.sei.cmu.edu/library/common-sense-guide-to-mitigating-insider-threats-seventh-edition/
+
+二、Prompt 注入、委托冲突和多轮上下文
+
+[R3] Yupei Liu, Yuqi Jia, Runpeng Geng, Jinyuan Jia, and Neil Zhenqiang Gong. Formalizing and Benchmarking Prompt Injection Attacks and Defenses. USENIX Security 2024, pp. 1831–1847.
+论文形式化研究应用输入中的指令或数据如何改变 LLM 集成应用的输出，支持区分原始任务与新增要求。正文的攻击族包括 Naive Attack、Escape Characters、Context Ignoring、Fake Completion 和 Combined Attack。Morpheus-Harness 把这些思想映射为员工请求机制标签，single_turn/multi_turn 只表示交互范围。来源：https://www.usenix.org/conference/usenixsecurity24/presentation/liu-yupei
+
+[R4] Sam Toyer et al. Tensor Trust: Interpretable Prompt Injection Attacks from an Online Game. ICLR 2024.
+作者在正式会议页的摘要区分 prompt hijacking 与 prompt extraction。企业目录中的目的地和对象范围是 Morpheus-Harness 用来观察委托偏离的业务变量。来源：https://iclr.cc/virtual/2024/poster/18168
+
+[R5] Mark Russinovich, Ahmed Salem, and Ronen Eldan. Great, Now Write an Article About That: The Crescendo Multi-Turn LLM Jailbreak Attack. USENIX Security 2025, pp. 2421–2440.
+作者研究多轮交互及前序回复对后续行为的影响。Morpheus-Harness 以中间确认为可见事件，控制员工何时变更要求。论文研究对象是越狱，两类任务的安全边界不同。来源：https://www.usenix.org/conference/usenixsecurity25/presentation/russinovich
+
+[R6] Hwan Chang, Yonghyun Jun, and Hwanhee Lee. ChatInject: Abusing Chat Templates for Prompt Injection in LLM Agents. ICLR 2026.
+论文摘要讨论将外部环境输出误当对话指令的风险及多轮机制。Morpheus-Harness 将交付消息逐轮存档，改变的是委托字段。来源：https://iclr.cc/virtual/2026/poster/10009048
+
+三、RAG 知识库污染及检索内容的影响
+
+[R7] Kai Greshake, Sahar Abdelnabi, Shailesh Mishra, Christoph Endres, Thorsten Holz, and Mario Fritz. Not What You’ve Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection. 16th ACM Workshop on Artificial Intelligence and Security (AISec), 2023, pp. 79–90. DOI 10.1145/3605764.3623985.
+作者在论文摘要中区分直接请求和经应用检索而进入上下文的外部数据。该工作提供了来源边界的依据。论文版本：https://arxiv.org/abs/2302.12173
+
+[R8] Wei Zou, Runpeng Geng, Binghui Wang, and Jinyuan Jia. PoisonedRAG: Knowledge Corruption Attacks to Retrieval-Augmented Generation of Large Language Models. USENIX Security 2025, pp. 3827–3844.
+原文摘要、引言研究向外部知识库加入文本对目标问答的影响。Morpheus-Harness 以同一查询下的原始文档与可见文档演示事实冲突，单独记录文档命中和采纳。来源：https://www.usenix.org/conference/usenixsecurity25/presentation/zou
+
+[R9] Zhaorun Chen, Zhen Xiang, Chaowei Xiao, Dawn Song, and Bo Li. AgentPoison: Red-teaming LLM Agents via Poisoning Memory or Knowledge Bases. NeurIPS 2024.
+原文摘要区分长期记忆和外部知识库，两者都可在检索后影响 Agent 的规划和执行。Morpheus-Harness 区分企业发布的资料与属于员工 Agent 的历史条目，并把各自的来源标识和范围交给模型。来源：https://proceedings.neurips.cc/paper_files/paper/2024/hash/eb113910e9c3f6242541c1652e30dfd6-Abstract-Conference.html
+
+
+[R18] Pritam Dash, Tongyu Ge, Aditi Jain, Tanmay Shah, and Zhiwei Shang. From Untrusted Input to Trusted Memory: A Systematic Study of Memory Poisoning Attacks in LLM Agents. arXiv:2606.04329v2, 2026.
+正文将记忆写入通道分为显式指令、系统提示驱动推断、压缩驱动推断和经验到规程，并区分显式命令、条件命令、显著性压缩、符合策略的事实、错误先例和规程写入。Morpheus-Harness 只抽取写入/召回/传播阶段和合成字段，不执行攻击载荷。来源：https://arxiv.org/abs/2606.04329
+
+[R19] Shen Dong, Shaochen Xu, Pengfei He, Yige Li, Jiliang Tang, Tianming Liu, Hui Liu, and Zhen Xiang. Memory Injection Attacks on LLM Agents via Query-Only Interaction (MINJA). arXiv:2503.03704v5, 2026.
+论文将 query-only 记忆污染分为注入、召回和目标回答阶段，并强调跨任务持久影响。此处用于支持 Memory 的生命周期字段。来源：https://arxiv.org/abs/2503.03704
+
+[R20] George Torres, Sharad Shrestha, and Satyajayant Misra. When Agents Remember Too Much: Memory Poisoning Attacks on Large Language Model Agents. arXiv:2607.06595v1, 2026.
+论文区分完整性破坏、敏感信息泄露、隐蔽外传和作用域升级，并以注入与激活两个阶段描述持久记忆风险。Morpheus-Harness 将其映射到写入、后续召回和行为效果审计。来源：https://arxiv.org/abs/2607.06595
+
+四、工具响应的信任边界
+
+[R10] Qiusi Zhan, Zhixiang Liang, Zifan Ying, and Daniel Kang. InjecAgent: Benchmarking Indirect Prompt Injections in Tool-Integrated Large Language Model Agents. Findings of ACL 2024, pp. 10471–10506. DOI 10.18653/v1/2024.findings-acl.624.
+原文摘要和引言讨论工具集成 Agent 如何受到外部内容影响，区分直接伤害用户与隐私数据外泄。Morpheus-Harness 将其作为结果用途标签，实际可运行的工具机制只改变同一调用的业务回包字段。来源：https://aclanthology.org/2024.findings-acl.624/
+
+[R11] Edoardo Debenedetti, Jie Zhang, Mislav Balunović, Luca Beurer-Kellner, Marc Fischer, and Florian Tramèr. AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents. NeurIPS 2024, Datasets and Benchmarks Track.
+论文在动态任务环境中研究操作不可信工具数据的 Agent。Morpheus-Harness 的查询、后续动作和模拟状态变化均留有可关联事件。来源：https://proceedings.neurips.cc/paper_files/paper/2024/hash/97091a5177d8dc64b1da8bf3e1f6fb54-Abstract-Datasets_and_Benchmarks_Track.html
+
+五、技能的发布、适用范围和供应链
+
+[R12] Yi Liu, Zhihao Chen, Yanjun Zhang, Gelei Deng, Yuekang Li, Jianting Ning, and Leo Yu Zhang. “Do Not Mention This to the User”: Detecting and Understanding Malicious Agent Skills in the Wild. USENIX Security 2026, pp. 1727–1746.
+原文分析实际注册表中的第三方技能，说明技能包可以携带自然语言规程和辅助脚本，并将确认样本中的行为归为凭据窃取、数据外泄、远程执行、权限滥用、Agent 操纵和隐藏功能等类别。Morpheus-Harness 只模拟声明式规程、来源、版本和适用范围，不执行脚本。来源：https://www.usenix.org/conference/usenixsecurity26/presentation/liu-yi
+
+[R13] Agent Skills. Specification. 在线格式规范，2026-11-25 查阅。
+规范的 Directory structure、SKILL.md format 和 Optional directories 说明技能包含元数据和规程正文，也可以附加脚本和资料。Morpheus-Harness 用 JSON 表示可审计的声明式规程，不执行插件脚本。此项为接口规范。来源：https://agentskills.io/specification
+
+六、持久记忆与经验复用
+
+[R14] Yicong Tan and Yang Zhang. Query-Efficient Memory Injection Attacks on LLM Agents. Findings of EMNLP 2026. DOI 10.18653/2026.findings-emnlp.1312.
+原文摘要和引言研究应用交互写入的记忆如何跨任务影响后续输出。Morpheus-Harness 在读取端区分旧偏好的召回和复核事实的对象归属，在写入端区分实际回执和由其派生的状态摘要。写入端的摘要失真属于企业情境抽象。来源：https://aclanthology.org/2026.findings-emnlp.1312/
+
+[R15] Bo Tang et al. From Memory to Skills: Evidence-Grounded Governance for Long-Horizon LLM Agents. Findings of EMNLP 2026, pp. 34826–34847. DOI 10.18653/2026.findings-emnlp.1637.
+作者在论文摘要中描述如何将带有依据的经验转为可复用技能，同时保留证据链接、适用边界和验证规则。这项研究有助于区分历史事实的来源和流程规程的适用条件。Morpheus-Harness 单独记录两者，目前没有自动将记忆提升为新技能的学习算法。来源：https://aclanthology.org/2026.findings-emnlp.1637/
+
+七、工具发现和能力描述的规范边界
+
+[R16] Model Context Protocol. Tools. Specification revision 2025-11-25.
+Tools 中的 Tool、Security Considerations 两节区分工具名称、输入模式、行为注解和调用结果，并规定客户端应按服务端信任来源处理注解。Morpheus-Harness 只把业务回包的改变纳入可运行目录。此项为接口规范。来源：https://modelcontextprotocol.io/specification/2025-11-25/server/tools
+
+[R17] Zhiqiang Wang et al. MCPTox: A Benchmark for Tool Poisoning on Real-World MCP Servers. Proceedings of the AAAI Conference on Artificial Intelligence, 40(42), 2026, pp. 35811–35819. DOI 10.1609/aaai.v40i42.40895.
+核对 AAAI 出版元数据、出版社提交的摘要和作者预印本摘要。论文的 P1 Explicit Trigger–Function Hijacking、P2 Implicit Trigger–Function Hijacking 和 P3 Implicit Trigger–Parameter Tampering 都发生在工具注册元数据阶段，与工具实际返回的数据是两个可分别研究的输入面。Morpheus-Harness 将其留在当前 tool_result 范围之外。作者版本：https://arxiv.org/abs/2508.14925
+
+[R21] Baolei Zhang, Haoran Xin, Jiatong Li, Dongzhe Zhang, Minghong Fang, Zhuqing Liu, Lihai Nie, and Zheli Liu. Benchmarking Poisoning Attacks against Retrieval-Augmented Generation. arXiv:2505.18543, 2025.
+该基准将 RAG 数据库污染按 targeted poisoning、denial-of-service 和 trigger-based denial-of-service 区分，并比较多种攻击与防御。Morpheus-Harness 采用其中的目标回答和不可用后果作为业务标签，不把其方法实现成攻击载荷。来源：https://arxiv.org/abs/2505.18543
+
+[R22] Zhuo Chen, Yuyang Gong, Jiawei Liu, Miaokun Chen, Haotan Liu, Qikai Cheng, Fan Zhang, Wei Lu, and Xiaozhong Liu. FlippedRAG: Black-Box Opinion Manipulation Adversarial Attacks to Retrieval-Augmented Generation Models. arXiv:2501.02968v7, 2025. DOI 10.1145/3719027.3765023.
+论文研究通过相关性和排序优化改变恶意文档进入上下文的机会。Morpheus-Harness 以 `relevance_manipulation` 和 `poisoning_stage=retrieval_rank` 记录这一来源边界。来源：https://arxiv.org/abs/2501.02968
+
+[R23] Xuanze Chen, Xukang Xie, Wentao Fu, Jiajun Zhou, Shanqing Yu, and Qi Xuan. MemSecBench: Tracking Agent Memory Poisoning from Persistence to Consequence and Repair. arXiv:2607.27080, 2026.
+该基准将写入、持久化、执行和效果分开记录。Morpheus-Harness 在 memory 场景保存写入或召回阶段、来源轨迹和后续服务回执。来源：https://arxiv.org/abs/2607.27080
+
+[R24] David H. Yang, Blake Bullwinkel, Amanda Minnich, Mohammad Mohammadi Amiri, and Giorgio Severi. MemoryDojo: Benchmarking Poisoning Through LLM Agent Memory. arXiv:2611.09721, 2026.
+该工作追踪一次工具返回进入记忆后跨会话召回和传播的生命周期。Morpheus-Harness 用 `lifecycle_stage`、`source_trace_id` 和后续活动连接同一条记忆证据。来源：https://arxiv.org/abs/2611.09721

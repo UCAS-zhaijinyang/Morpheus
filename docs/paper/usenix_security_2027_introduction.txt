@@ -1,0 +1,253 @@
+[英文原文]
+1 INTRODUCTION
+
+Insider threats remain a critical security problem for enterprises. Employees and contractors need access to sensitive records to do their jobs. Both deliberate misuse and mistakes can cause harm through that access [1]. Carnegie Mellon’s Software Engineering Institute drew on roughly 3,000 insider threat cases to identify recurring problems in how organizations manage this risk [29]. Verizon’s 2024 Data Breach Investigations Report counted 897 incidents in its Privilege Misuse category, including 854 with confirmed data disclosure, among the incidents reported to the study [28]. A 2025 regulatory filing by Coinbase illustrates the difficulty of linking individual accesses to a wider incident. Over several months, the company separately detected support personnel retrieving data without a business need. After receiving an extortion email, it linked those accesses to a single data theft campaign. Coinbase’s assessment at the time was that an external actor appeared to have paid several support contractors or employees outside the United States. Their jobs already gave them access to the systems involved [30].
+
+These cases pose two problems for detection. First, investigators need to know whether a seemingly routine access serves a business purpose. Reading a single sensitive document can cause harm without ever triggering a volume threshold. At Google, Facade uses an employee’s working relationships and the access patterns of others who use the same resource to assess whether an action fits the employee’s work. Within weeks of deployment, it uncovered previously unknown malicious activity [15]. Second, investigators need to connect accesses that warrant a common investigation. A separate alert for every access consumes analyst time and can split evidence of one incident across several investigations. A detector must rank cases for timely review and preserve the evidence an analyst needs to examine the business justification.
+
+The review budget affects which incidents analysts can find. Facade’s authors give the example of ten million benign events a day, for which a 0.1% event-level false positive rate would produce about ten thousand false alerts. In a separate two-week exercise involving 15 employees, the researchers aggregated access events by employee and ranked employees daily. With ten employees reviewed per day, three to four participants would have been detected over the exercise, assuming reviewers recognized participants when they examined their activity [15, Sec. 7.3]. An employee accessing another department’s documents for the first time under a temporary assignment might also rank highly. An evaluation needs examples of such authorized collaboration to measure how much of the review budget legitimate work consumes.
+
+AI-native enterprise workflows add delegation to this problem. Employees can authorize agents to perform part of their work. Enterprise identity platforms can assign agents their own identities and govern their access to resources, and the OAuth token exchange standard distinguishes the subject being represented from the party acting on its behalf [7,13]. Consider a researcher preparing a cross-department risk report. The researcher might ask a personal assistant to assemble the materials and a shared risk-management agent to retrieve departmental data and send the report to the project team. The shared agent may retain access to the delivery service after its approval to release this particular report expires. A procedure saved from an earlier assignment might also carry the previous project’s recipient list into the new one.
+
+Consider two simulated deliveries of that report. The requester, executing agent, send time, and recipients are identical. In one case the release approval expires just before the send, and in the other it expires just after. The email records can look identical, although only the second delivery is authorized. Approval can also govern how data is combined. A project may have approval to receive records from two departments separately, yet lack approval to receive those records linked by customer. Inputs introduce another source of influence. AgentDojo tests how external content affects subsequent tool use in a controlled environment, and the EchoLeak researchers demonstrated how an external email could induce an enterprise assistant to disclose data within its reach [10–12]. We include violations that employees cause, intentionally or inadvertently, by delegating work. We record the origin of external input separately so that investigators can distinguish the employee’s request, the agent’s action, and any outside influence.
+
+Chimera uses multi-agent simulation to generate insider threat data. Simulated employees plan work around shared business goals, exchange information, and carry out tasks. Threat activity takes place within those routines. The resulting ChimeraLog dataset preserves the relationships among collaborating employees, allowing researchers to test whether detectors can identify privilege misuse amid ordinary work and whether they transfer across organizational settings [14].
+
+Delegating work to a shared agent raises a further question. In the risk-report example, Chimera’s employee-day detection task can test whether a model flags the employee worth investigating. Even a correct alert leaves open whether the employee’s delegation was still in force when the agent sent the report. To distinguish the two deliveries, an investigator must link the send to the approval that applied at that moment. A dataset for this task needs both the collaborative activity that ChimeraLog captures and a record of the authority employees grant agents and how the agents use it.
+
+Existing detectors illustrate why this distinction matters. Insight-LLM combines textual, temporal, and relational information to identify suspicious behavior in CERT’s synthetic employee activity [2,31]. Facade draws on employees’ working relationships and a resource’s access history. Its authors observe that malicious access to files directly relevant to an employee’s job can resemble routine work, and that meetings and reporting lines offer little basis for characterizing shared accounts [15]. Investigators therefore need evidence of the purpose for which the data was used [6]. A record of who read or wrote a file and when can support a judgment about how common the action was. It leaves the validity of the delegation untested.
+
+Agent security benchmarks address parts of this problem. AgentDojo checks tool actions and their security consequences within a task [11]. OrgForge-IT uses an independent state engine to establish ground truth. In its evaluation, some detectors identified an attack yet assigned responsibility to the holder of the victim account [17]. MOLE studies 150 AI-operated accounts across nine stateful services over 30 workdays. It compares how much completed harm monitors can detect from audit events or session records under a fixed review budget [18]. Two questions remain for workflows that mix legitimate collaboration with delegation violations. How many more violations can a detector find when it can link each request to the employee and the executing agent? How many false alerts or attribution errors can it correct when it can also see the delegation’s expiry or the origin of a reused procedure? Answering both requires varying the evidence visible to the detector on the same set of tasks.
+
+We therefore propose a dataset for evaluating insider threat detection in AI-native enterprises. It should retain login, email, web, and file records comparable to CERT and link each relevant event to delegation, approval, and procedure records available to an investigator. Benign cases should include authorized cross-department work and temporary cover for a colleague. For a closely matched violation, the generator can hold the employee, project, schedule, and initial tool state fixed, vary one authorization condition, and label the action according to what was actually sent or written. These pairs would let detectors learn from legitimate and unauthorized actions that look similar. They would also let researchers score the flagged employee-day, the identified requester, and the affected resource separately. Scenario identifiers, intervention markers, and ground-truth verdicts belong in the scoring data, outside the detector’s input.
+
+We built the Morpheus-Harness prototype on Chimera. It derives employee schedules from organizational and departmental goals, distinguishes personal assistants from shared enterprise agents, records handoffs from planning to tool execution, and stores reusable procedures with their source events for each employee. The prototype produces employee activity traces and handoff audit records. We plan to generate a dataset covering agent-mediated data boundary violations, cross-department data aggregation through delegation, and contamination of skills or memory. Deepseek-v4.1-flash will simulate internet, financial, and AI organizations. At 100 employees and 50 workdays per organization, each unit contains 5,000 employee-days, including 4,000 benign and 1,000 threat employee-days. The three Morpheus-Harness units contain 15,000 employee-days in total. We will first check activity patterns, collaboration, and whether the audit records allow us to reconstruct delegations. We will split the data by employee and use the log fields shared with CERT for two tests. We will evaluate detectors within each dataset, then train on one dataset and test on the other in both directions. On the same employee-days in our dataset, we will then add agent identity, delegation, and procedure provenance in turn and measure recall, false alerts, and requester attribution at a fixed number of employee reviews per day.
+
+We make three contributions.
+
+1. We define a threat model for delegated work in enterprises. It distinguishes the requester, the authorizing party, the executing agent, and the data recipient. Business purpose, delegation validity, and the observed outcome determine whether a delivery crosses an authorization boundary.
+
+2. We specify a dataset for the three threat scenarios and implement the Morpheus-Harness generator prototype. It records everyday collaboration and employee–agent handoffs in the same activity trace, providing a basis for constructing matched examples of authorized actions and violations.
+
+3. We design two complementary evaluations. Cross-dataset transfer tests whether existing detectors generalize to work involving enterprise agents. Varying the audit fields visible for the same traces isolates the contribution of each source of evidence to alert ranking and requester attribution.
+
+
+[中文修订稿]
+1 引言
+
+内部威胁仍是现代企业的关键安全问题。员工和承包商需要接触敏感资料才能履职，同一项访问权限也可能被有意滥用，或因误操作而造成损害 [1]。卡内基梅隆大学软件工程研究所汇总了约 3,000 起内部威胁案例，用以分析组织反复遇到的管理问题 [29]。Verizon 在《2024 年数据泄露调查报告》的“权限滥用”类别中记录了 897 起事件，其中 854 起确认发生数据泄露 [28]。这是报告收录事件的统计，不是所有企业的发生率估计。Coinbase 在 2025 年提交的监管报告中披露，公司此前数月曾分别发现多名客服人员在没有业务需要时调取数据，收到勒索邮件后才把这些访问关联为同一次数据窃取行动。公司当时的调查判断，外部人员很可能向多名美国境外的客服承包商或员工支付了报酬。涉事人员原本就有权进入相关系统 [30]。
+
+这类事件给内部威胁检测提出了两个要求。首先，检测器需要判断一次看似正常的访问是否有业务依据。只读取一份敏感文档就可能造成损害，按下载量设置的阈值很难发现这种行为。Facade 在 Google 的生产环境中结合员工的协作关系和资源的历史访问者，判断一次访问与当前工作的关联程度。系统部署后的最初几周便发现了此前未知的恶意活动 [15]。其次，检测器需要把分散的证据关联到值得调查的人和事件。将每次可疑访问单独告警，既占用分析员时间，也容易让同一事件的不同环节落到不同调查中。因而，检测技术的价值还取决于告警排序能否在有限人力下及时暴露值得追查的访问，并保留分析员核查其业务依据所需的证据。
+
+复核预算直接影响能发现多少威胁。Facade 论文以每天一千万条正常事件为例，事件级误报率即使只有 0.1%，也会产生约一万条误报。在另一项由 15 名员工参与的两周演练中，研究者把相关访问汇总到人，按风险逐日排序。在每天复核 10 名员工、假设参与者一旦被复核就能被识别的条件下，排进复核名单的演练参与者有 3 至 4 名 [15，第 7.3 节]。由此，评测数据中的正常工作也决定了检测结论。获得临时授权后首次访问其他部门文档的员工，同样可能排在名单前列。若测试集中缺少这样的正常协作，便无法衡量一个检测器会把多少复核机会花在合法访问上。
+
+在 AI 原生（AI-native）企业工作流中，员工还可以把一部分履职权限委托给智能体。企业身份平台已经支持为智能体分配独立身份和管理其资源访问，OAuth 令牌交换标准也区分被代表的主体和实际行动方 [7,13]。以跨部门风险报告为例，研究员可以请个人助理汇总材料，再由风险部门共享的企业智能体读取数据并向项目成员发出报告。此时，提供数据的部门、发起请求的员工和实际发送报告的智能体可以各不相同。共享智能体即使持续拥有调用接口的权限，某个项目向它授予的发布权限也可能已经到期。若它沿用上次任务保存的流程，一次新的委托还可能把旧项目的接收范围带入本次交付。
+
+这种变化把内部威胁的判定从员工的一次访问延伸到受托执行的全过程。设想同一份报告的两次模拟交付。员工、执行智能体、发送时间和收件组均相同，唯一差别是发布审批在发送前还是发送后到期。两次交付留下相同的邮件记录，只有后者符合授权条件。授权还可能约束数据的组合方式。例如，两个部门可分别获准共享业务数据，把二者按客户合并后交付却可能超出项目授权。输入来源也可能改变执行结果。AgentDojo 在受控工具环境中评测了外部内容对后续动作的影响，EchoLeak 的研究者则展示过外部邮件如何使企业助手披露其能够读取的数据 [10–12]。两项研究说明，上游内容可以借助执行者已有的访问权影响数据流向。本文将员工有意或无意地通过委托造成的越界纳入内部威胁，并单独标记外部输入的来源，以便调查时区分员工的请求、智能体的动作和外部诱因。
+
+Chimera 将多智能体模拟引入内部威胁数据生成。模拟员工围绕共同的业务目标安排工作、交换信息并完成任务，威胁行为也发生在这些日常活动之中。由此生成的 ChimeraLog 保留了员工之间的协作关系，使研究者能够检验检测器能否从正常工作中识别权限滥用，以及这种识别能力能否迁移到另一种组织环境 [14]。
+
+当员工把任务交给共享智能体时，检测还需要回答一个关于授权的问题。以上述跨部门报告为例，Chimera 的员工日检测任务可以评估模型能否找出值得调查的员工，但即使找对了人，也还要判断智能体发送报告时，发起人的委托是否仍然有效。两次发送留下相同的邮件记录时，检测器需要将实际发送动作与当时适用的审批联系起来，才能区分获批交付和越界披露。这要求数据集既保留 ChimeraLog 所刻画的日常协作，也记录员工授予智能体的权限及其在任务中的使用情况。
+
+现有检测方法说明了这种区分为何重要。以 CERT 合成员工活动为基础，Insight-LLM 融合文本、时间和关系信息识别可疑行为 [2,31]。Facade 则利用员工的协作关系和资源的访问历史判断某次操作是否异常。其作者指出，员工为本职工作读取敏感文件时，恶意访问可能与日常访问难以区分，而共享账号也很难用会议和汇报关系来描述 [15]。业务用途因此是调查员需要核实的一项事实 [6]。如果数据只记录谁在何时读写了文件，即便模型能准确判断该行为是否常见，也难以验证它能否识别一次看似平常的违规委托。
+
+面向智能体的安全基准已能验证若干更细的问题。AgentDojo 可以在单个任务中核对工具调用及其安全后果 [11]。OrgForge-IT 用独立的状态引擎生成事实标签，其实验发现，有些检测器能识别攻击，却把受害账号的持有人判作责任人 [17]。MOLE 更直接地研究企业中的 AI 账号，模拟 150 个账号在 9 个有状态服务上工作 30 个工作日，并比较复核预算相同时，监测器看到审计事件或会话记录能发现多少已造成的损害 [18]。对同一批包含正常协作和违规委托的员工任务，现有结果仍难以回答两个问题。知道“哪名员工委托了哪个智能体”能帮助检测多少违规？再看到委托有效期或复用流程的来源，又能纠正多少误报和错误归因？要回答这两个问题，需要在同一批业务记录上控制检测器可以看到哪些证据。
+
+为此，我们需要一套面向检测研究的 AI 原生企业内部威胁数据集。它应保留能与 CERT 对齐的登录、邮件、网页和文件记录，也应为同一事件保留调查员可以取得的委托、审批和流程来源记录。正常样本应包括获批的跨部门协作和临时替岗。对于与其相似的威胁样本，可以固定员工、项目、日程和初始工具状态，只改变一项授权条件，再依据实际发送或写入的结果给出标签。这样，检测器可以在难度相近的正负样本上学习区分常规工作与越界行为，研究者也能分别检验模型标出的员工日、发起人和受影响资源。用于评分的场景编号、干预标记和最终裁定应与检测器的输入分开保存。
+
+我们在 Chimera 基础上实现了 Morpheus-Harness 原型。它按组织和部门目标生成员工日程，区分个人助理与共享企业智能体，记录规划到工具执行的交接，并按员工保存可复用的流程及其来源事件。原型已能输出员工活动轨迹和交接审计记录。计划中的数据集覆盖智能体介导的数据越界、跨部门委托聚合及技能或记忆污染三类场景。deepseek-v4.1-flash 将分别模拟互联网、金融和 AI 组织，每个组织包含 100 名员工、50 个工作日，每个单元包含 5,000 个员工日，其中 4,000 条为正常数据、1,000 条为内部威胁数据；3 个 Morpheus-Harness 单元合计 15,000 个员工日。评测先检查工作节律、协作关系以及能否从轨迹还原委托链，再按员工划分训练集和测试集，在共同日志字段上进行与 CERT 的同域和双向迁移比较。随后在本数据集的同一批员工日上逐项加入智能体身份、委托和流程来源，比较每日固定复核人数下的召回、误报及发起人归因结果。
+
+本文的贡献包括三项。
+
+1. 定义智能体介导的企业内部威胁模型。模型分别描述发起人、授权人、执行智能体和数据接收方，并以业务用途、委托期限和执行结果判定一次交付是否越界。
+
+2. 提出面向上述三类威胁的数据集设计，并实现 Morpheus-Harness 生成原型。它将组织中的日常协作和人机交接记录到同一条员工活动轨迹，为构造获批操作与越界操作的成对样本提供基础。
+
+3. 设计两组互补的评测对照。跨数据集对照用于检验已有检测器能否迁移到含智能体的工作环境。在同一批轨迹上改变可见的审计字段，则能单独评估每类证据对告警排序和发起人归因的作用。
+
+
+REFERENCES
+
+[1] Cybersecurity and Infrastructure Security Agency. “Insider Threat Mitigation.” CISA, accessed November 21, 2026. https://www.cisa.gov/topics/physical-security/insider-threat-mitigation
+Use in Introduction: baseline definition of an insider as a person with authorized access or knowledge, including intentional and unintentional harm.
+中文题名　《内部威胁缓解》
+引用说明　提供内部人员的基本定义。此类人员拥有授权访问权或相关知识，可能有意或无意地造成损害。
+
+[2] Brian Lindauer. “Insider Threat Test Dataset (v1).” Carnegie Mellon University, 2020. DOI: 10.1184/R1/12841247.v1. https://doi.org/10.1184/R1/12841247.v1
+Use in Introduction: canonical synthetic employee-activity reference with background and malicious behavior, and an explicit boundary around missing agent provenance.
+中文题名　《内部威胁测试数据集（v1）》
+引用说明　提供包含正常活动和恶意行为的典型合成员工活动记录，用于与含 Agent 来源信息的轨迹对照。
+
+[3] MITRE. “Valid Accounts (T1078).” MITRE ATT&CK, version current at access date. https://attack.mitre.org/techniques/T1078/
+Use in Introduction: legitimate credentials as an established path for access, persistence, privilege abuse, and defense evasion.
+中文题名　《有效账号（T1078）》
+引用说明　说明合法凭据可用于获取访问权限、维持访问、滥用权限和规避防御。
+
+[4] Vincent C. Hu, David Ferraiolo, Rick Kuhn, Adam Schnitzer, Kenneth Sandlin, Robert Miller, and Karen Scarfone. “Guide to Attribute Based Access Control (ABAC) Definition and Considerations.” NIST Special Publication 800-162, 2019. DOI: 10.6028/NIST.SP.800-162. https://csrc.nist.gov/pubs/sp/800/162/upd2/final
+Use in Introduction: authorization as a function of subject, object, operation, environment, policy, and relationships.
+中文题名　《基于属性的访问控制（ABAC）定义和注意事项指南》
+引用说明　说明授权如何取决于主体、对象、操作、环境、策略和关系。
+
+[5] Scott Rose, Oliver Borchert, Stu Mitchell, and Sean Connelly. “Zero Trust Architecture.” NIST Special Publication 800-207, 2020. DOI: 10.6028/NIST.SP.800-207. https://csrc.nist.gov/pubs/sp/800/207/final
+Use in Introduction: user, asset, resource, and workflow context in enterprise authorization and continuous verification.
+中文题名　《零信任架构》
+引用说明　为企业授权与持续核验提供用户、资产、资源和工作流上下文。
+
+[6] Michael Carl Tschantz, Anupam Datta, and Jeannette M. Wing. “Formalizing and Enforcing Purpose Restrictions in Privacy Policies.” 2012 IEEE Symposium on Security and Privacy, pp. 176–190, 2012. DOI: 10.1109/SP.2012.21. https://doi.org/10.1109/SP.2012.21
+Use in Introduction: purpose restrictions and auditing of action sequences whose legitimacy depends on intended use.
+中文题名　《隐私策略中用途限制的形式化与执行》
+引用说明　为用途限制及依据信息用途审计操作序列提供依据。
+
+[7] M. Jones, A. Nadalin, B. Campbell (eds.), J. Bradley, and C. Mortimore. “OAuth 2.0 Token Exchange.” RFC 8693, IETF, January 2020. https://www.rfc-editor.org/rfc/rfc8693.html
+Use in Introduction: distinction between subject and acting party, and standardized representation of impersonation and delegation.
+中文题名　《OAuth 2.0 令牌交换》
+引用说明　说明授权主体与实际执行方的区别，以及模拟主体身份和委托权限的标准化表示。
+
+[8] Chloe Autio, Reva Schwartz, Jesse Dunietz, Shomik Jain, Martin Stanley, Elham Tabassi, Patrick Hall, and Kamie Roberts. “Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile.” NIST AI 600-1, 2024. DOI: 10.6028/NIST.AI.600-1. https://doi.org/10.6028/NIST.AI.600-1
+Use in Introduction: data privacy, human-AI configuration, information security, indirect prompt injection, and data/model poisoning as risk perspectives.
+中文题名　《人工智能风险管理框架（生成式人工智能概况）》
+引用说明　为数据隐私、人机配置、信息安全、间接提示注入及数据或模型投毒提供风险视角。
+
+[9] OWASP GenAI Security Project. “OWASP Top 10 for Agentic Applications 2026.” 2026. https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
+Use in Introduction: identity and privilege abuse, tool misuse, memory/context poisoning, insecure inter-agent communication, and agentic supply-chain risk categories. This classification is not used as evidence of incident frequency.
+中文题名　《OWASP 2026 年 Agent 应用十大安全风险》
+引用说明　用于界定身份与权限滥用、工具误用、记忆与上下文投毒、不安全的 Agent 间通信和 Agent 供应链风险。属于风险分类依据。
+
+[10] Kai Greshake, Sahar Abdelnabi, Shailesh Mishra, Christoph Endres, Thorsten Holz, and Mario Fritz. “Not What You’ve Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection.” arXiv:2302.12173, 2023. https://arxiv.org/abs/2302.12173
+Use in Introduction: untrusted external content influencing an integrated LLM application through its context.
+中文题名　《与你注册时预期的不同——利用间接提示注入危及现实中的大语言模型集成应用》
+引用说明　说明不可信的外部内容可以经由上下文影响集成大语言模型的应用。
+
+[11] Edoardo Debenedetti, Jie Zhang, Mislav Balunović, Luca Beurer-Kellner, Marc Fischer, and Florian Tramèr. “AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents.” Advances in Neural Information Processing Systems 37 (NeurIPS 2024), pp. 82895–82920. DOI: 10.52202/079017-2636. https://proceedings.neurips.cc/paper_files/paper/2024/hash/97091a5177d8dc64b1da8bf3e1f6fb54-Abstract-Datasets_and_Benchmarks_Track.html
+Use in Introduction: dynamic tool-use security evaluation with 97 tasks and 629 security test cases.
+中文题名　《AgentDojo——评估大语言模型 Agent 提示注入攻防的动态环境》
+引用说明　提供包含 97 个任务和 629 个安全测试案例的动态工具调用评测环境。
+
+[12] Pavan Reddy and Aditya Sanjay Gujral. “EchoLeak: The First Real-World Zero-Click Prompt Injection Exploit in a Production LLM System.” arXiv:2509.10540, 2025. https://arxiv.org/abs/2509.10540
+Related public vulnerability record: NVD CVE-2025-32711, https://nvd.nist.gov/vuln/detail/CVE-2025-32711
+Use in Introduction: boundary case for source/executor separation and enterprise-agent data-flow impact. The paper must preserve its status as an external-agent-mediated vulnerability rather than relabeling it as an employee insider incident. Verify the final author list and publication status before submission.
+中文题名　《EchoLeak——生产环境大语言模型系统中的首个真实零点击提示注入漏洞利用案例》
+引用说明　用于说明外部来源与企业执行者可能分离，以及这种分离对企业 Agent 数据流的影响。论文将其归为经 Agent 介导的外部漏洞案例。投稿前复核最终作者名单和发表状态。
+
+[13] Microsoft. “Agent Identities in Microsoft Entra Agent ID.” Microsoft Learn, November 3, 2026. https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/agent-identities
+Use in Introduction: enterprise identity, lifecycle, ownership, authentication, authorization, and resource-protection constructs for AI agents.
+中文题名　《Microsoft Entra Agent ID 中的 Agent 身份》
+引用说明　说明企业可如何管理 AI Agent 的身份、生命周期、归属、认证、授权及资源访问。
+
+[14] Jiongchi Yu, Xiaofei Xie, Qiang Hu, Yuhan Ma, and Ziming Zhao. “Chimera: Harnessing Multi-Agent LLMs for Automatic Insider Threat Simulation.” Network and Distributed System Security Symposium (NDSS), 2026. DOI: 10.14722/ndss.2026.240375. https://www.ndss-symposium.org/ndss-paper/chimera-harnessing-multi-agent-llms-for-automatic-insider-threat-simulation/
+Full text: https://www.ndss-symposium.org/wp-content/uploads/2026-f375-paper.pdf
+Use in Introduction: direct prior work, ChimeraLog, multi-agent employee simulation, and the baseline from which the present organization-constrained provenance model extends.
+中文题名　《Chimera——利用多 Agent 大语言模型自动模拟内部威胁》
+引用说明　第 IV 节介绍三种组织配置、威胁场景和采集的日志。图 5 报告专家对应用日志片段的真实性评分。表 IV、V 分别报告 DS-IID 的同域与跨数据集检测结果。
+
+[15] Alex Kantchelian, Casper Neo, Ryan Stevens, Hyungwon Kim, Zhaohao Fu, Sadegh Momeni, Birkett Huber, Cem Topcuoglu, Senaka Buthpitiya, Elie Bursztein, Yanis Pavlidis, Martin Cochran, and Massimiliano Poletto. “Facade: High-Precision Insider Threat Detection Using Deep Contextual Anomaly Detection.” 35th USENIX Security Symposium, 2026, pp. 6917–6936. https://www.usenix.org/conference/usenixsecurity26/presentation/kantchelian
+Use in Introduction: production insider-threat detection that combines user and resource context.
+中文题名　《Facade——利用深度上下文异常检测实现高精度内部威胁检测》
+引用说明　第 2 节给出事件级误报数量的算例。第 7.3 节和图 8 以每日复核人数衡量演练参与者的检出情况。第 8 节界定日常工作相似性与非人类身份对检测的限制。
+
+[16] Nazanin Sabri, Arkaprabha Bhattacharya, Sterling Williams-Ceci, Daniel V. Bailey, and Rosanna Bellini. “Selling the Dream: How Intimate Insiders and Identity-Based Attackers Disrupt Micro-businesses.” 35th USENIX Security Symposium, 2026, pp. 3873–3892. https://www.usenix.org/conference/usenixsecurity26/presentation/sabri
+Use in Introduction: identity relationships, visibility, and informal organizational access as risk variables.
+中文题名　《兜售梦想——关系密切的内部人员与基于身份的攻击者如何扰乱微型企业》
+引用说明　说明身份关系、可见性和非正式的组织访问如何影响风险。
+
+[17] Jeffrey Flynt. “OrgForge-IT: A Verifiable Synthetic Benchmark for LLM-Based Insider Threat Detection.” arXiv:2603.22499, 2026. https://arxiv.org/abs/2603.22499
+Dataset: https://huggingface.co/datasets/aeriesec/orgforge-insider-threat
+Use in Introduction: deterministic ground truth, cross-artifact consistency, and separation of triage from attribution. Verify venue and final bibliographic status before submission.
+中文题名　《OrgForge-IT——用于大语言模型内部威胁检测的可验证合成基准》
+引用说明　为确定性真值、跨记录一致性以及分别评估分诊和归因提供参照。投稿前复核发表渠道及最终书目信息。
+
+[18] Aashiq Muhamed and Virginia Smith. “MOLE: Detecting Insider Threats in AI Agents.” arXiv:2609.06966, 2026. https://arxiv.org/abs/2609.06966
+Dataset: https://huggingface.co/datasets/forgelab/mole
+Use in Introduction: AI-operated accounts, stateful services, limited review budgets, observability levels, and damage-based labels. Verify venue and final bibliographic status before submission.
+中文题名　《MOLE——检测 AI Agent 中的内部威胁》
+引用说明　为 AI 操作账号、有状态服务、有限复核预算、不同可见性和基于损害结果的标签提供参照。投稿前复核发表渠道及最终书目信息。
+
+[19] Rabimba Karanjai, Yang Lu, Hemanth Hegadehalli Madhavarao, Lei Xu, and Weidong Shi. “Context Contamination in LLM Analysis of Network Security Logs: Poison with Passive Prompt Injection and Mitigation Evaluation.” 35th USENIX Security Symposium, 2026, pp. 1507–1526. https://www.usenix.org/conference/usenixsecurity26/presentation/karanjai
+Use in Introduction: passive prompt injection and the need to jointly audit log content, model context, and security-analysis output.
+中文题名　《大语言模型分析网络安全日志时的上下文污染——被动提示注入投毒与缓解措施评估》
+引用说明　说明被动提示注入带来的风险，以及同时审计日志内容、模型上下文和安全分析输出的必要性。
+
+[20] Changyue Jiang, Jiayi Wang, Xin Wen, Jiarun Dai, Geng Hong, and Xudong Pan. “MATE: Policy-Aware Security Auditing for Mobile Agents via Synthesis-Driven Trajectory Learning.” 35th USENIX Security Symposium, 2026, pp. 6027–6046. https://www.usenix.org/conference/usenixsecurity26/presentation/jiang-changyue
+Use in Introduction: policy-conditioned trajectory auditing and synthesis-driven security traces.
+中文题名　《MATE——基于合成轨迹学习的移动 Agent 策略感知安全审计》
+引用说明　为按策略审计轨迹并使用合成安全记录提供参照。
+
+[21] Yi Liu, Zhihao Chen, Yanjun Zhang, Gelei Deng, Yuekang Li, Jianting Ning, and Leo Yu Zhang. “Do Not Mention This to the User: Detecting and Understanding Malicious Agent Skills in the Wild.” 35th USENIX Security Symposium, 2026, pp. 1727–1746. https://www.usenix.org/conference/usenixsecurity26/presentation/liu-yi
+Use in Introduction: malicious skill supply chains and the security importance of skill provenance and behavior.
+中文题名　《请勿向用户提及此事——检测并理解现实中的恶意 Agent 技能》
+引用说明　说明恶意技能供应链风险，以及审计技能来源和行为的重要性。
+
+[22] Ben Hagag et al. “Architecture Matters for Multi-Agent Security.” arXiv:2604.23459, 2026. https://arxiv.org/abs/2604.23459
+Use in Introduction: role assignment, interaction topology, and memory visibility as architecture-level security variables. Confirm the final author list and venue metadata before submission.
+中文题名　《架构对多 Agent 安全至关重要》
+引用说明　支持将角色分配、交互拓扑和记忆可见性作为架构层面的安全变量。投稿前复核最终作者名单和发表信息。
+
+[23] Tanqiu Jiang et al. “AgentLAB: Benchmarking LLM Agents against Long-Horizon Attacks.” arXiv:2602.16901, 2026. https://arxiv.org/abs/2602.16901
+Use in Introduction: long-horizon attacks and the insufficiency of single-turn security evaluation. Confirm the final author list and venue metadata before submission.
+中文题名　《AgentLAB——评估大语言模型 Agent 应对长时攻击的基准》
+引用说明　说明长时攻击需要跨轮评测。投稿前复核最终作者名单和发表信息。
+
+[24] “Causal Detection of Multi-Step LLM Agent Attacks (CausalTrace).” OpenReview record, 2026. https://openreview.net/forum?id=Kb2m543agS
+Use in Introduction: counterfactual and causal reasoning over multi-step agent attacks. Before submission, replace this entry with the verified final author list, venue, pages, DOI, or arXiv record if one exists.
+中文题名　《多步大语言模型 Agent 攻击的因果检测（CausalTrace）》
+引用说明　为多步 Agent 攻击的反事实与因果分析提供参照。投稿前核对最终作者、发表渠道、页码及可用的 DOI 或 arXiv 记录。
+
+[25] “ProcMEM: Learning Reusable Procedural Memory from Experience.” OpenReview record, 2026. https://openreview.net/forum?id=9kJQjx2B80
+Use in Introduction: trigger, execution, termination, reliability, and validation requirements for procedural memory. Before submission, replace this entry with verified final bibliographic metadata.
+中文题名　《ProcMEM——从经验中学习可复用的程序性记忆》
+引用说明　为程序性记忆的触发、执行、终止、可靠性和验证要求提供参照。投稿前核对最终书目信息。
+
+[26] Zidi Xiong, Yuping Lin, Wenya Xie, Pengfei He, Zirui Liu, Jiliang Tang, Himabindu Lakkaraju, and Zhen Xiang. “How Memory Management Impacts LLM Agents: An Empirical Study of Experience-Following Behavior.” ACL 2026, pp. 623–645. DOI: 10.18653/v1/2026.acl-long.27. https://doi.org/10.18653/v1/2026.acl-long.27
+Use in Introduction: empirical motivation for treating memory management and experience reuse as behaviorally consequential state.
+中文题名　《记忆管理如何影响大语言模型 Agent——遵循经验行为的实证研究》
+引用说明　提供实证动机，说明记忆管理和经验复用会影响后续行为。
+
+[27] USENIX Association. “36th USENIX Security Symposium Call for Papers.” USENIX Security ’27, accessed November 21, 2026. https://www.usenix.org/conference/usenixsecurity27/call-for-papers
+Use for submission planning rather than paper claims: systems-security relevance, 13-page body limit excluding references/appendices, anonymous review, Open Science Appendix requirement, and strongly encouraged Ethics Appendix.
+中文题名　《第 36 届 USENIX 安全研讨会征稿启事》
+引用说明　供投稿准备参考，涵盖系统安全相关性、正文 13 页上限、匿名评审、开放科学附录要求及强烈建议提交的伦理附录。参考文献和附录另计。
+
+[28] Verizon. “2024 Data Breach Investigations Report.” 17th edition, 2024. https://www.verizon.com/business/resources/reports/2024-dbir-data-breach-investigations-report.pdf
+Use in Introduction: the Privilege Misuse section on p. 53 counts 897 incidents, including 854 with confirmed data disclosure, in the report sample.
+中文题名　《2024 年数据泄露调查报告》
+引用说明　报告第 53 页的“权限滥用”类别收录 897 起事件，其中 854 起确认发生数据泄露。该统计以报告收录的事件为范围。
+
+[29] CERT Division, Software Engineering Institute, Carnegie Mellon University. “Common Sense Guide to Mitigating Insider Threats, Seventh Edition.” 2022. https://www.sei.cmu.edu/library/common-sense-guide-to-mitigating-insider-threats-seventh-edition/
+Use in Introduction: empirical analysis of approximately 3,000 insider-threat cases and the resulting management practices. The case count is a cumulative case-library statistic, not an estimate of enterprise-wide prevalence.
+中文题名　《降低内部威胁的常识指南（第七版）》
+引用说明　CMU SEI 基于约 3,000 起内部威胁案例归纳管理实践。该数量是累计案例库统计，不是所有企业的发生率估计。
+
+[30] Coinbase Global, Inc. “Current Report on Form 8-K, Item 1.05—Material Cybersecurity Incident.” Filed May 15, 2025. SEC Accession No. 0001679788-25-000094. https://www.sec.gov/Archives/edgar/data/1679788/000167978825000094/coin-20250514.htm
+Use in Introduction: a primary disclosure describing suspected paid insiders or contractors using necessary support-role access without a business need, and the delayed correlation of separate access observations into one data-theft incident.
+中文题名　《8-K 当前报告，第 1.05 项——重大网络安全事件》
+引用说明　Coinbase 的 SEC 披露称，外部威胁者似乎向多名美国境外客服承包商或员工支付报酬，使其利用履职所需权限调取资料。公司此前数月已监测到缺乏业务需要的访问，之后才将记录关联为同一事件。该披露使用了调查初步判断的措辞。
+
+[31] Chengyu Song, Lin Yang, Jianming Zheng, Jingjing Zhang, Hongyu Kuang, Jinzhi Liao, and Mengchun Zhao. “Fusion Is Not A Simple Ensemble! Towards The Evolving Views in Insider Threat Detection.” Proceedings of the ACM Web Conference 2026 (WWW ’26), pp. 7235–7246, 2026. DOI 10.1145/3774904.3792398. https://doi.org/10.1145/3774904.3792398
+Use in Introduction: Insight-LLM combines multiple views of employee behavior and evaluates insider-threat detection on CERT.
+中文题名　《融合超越简单集成：面向内部威胁检测中不断扩展的行为视图》
+引用说明　在 CERT 上评估多视图员工行为检测，用于说明现有方法能从哪些类型的行为记录提取证据。
+
+REFERENCE VERIFICATION AND SUBMISSION NOTES
+
+1. The Introduction intentionally cites the published Chimera NDSS 2026 paper as prior work and states the incremental contribution as organization-constrained provenance, delegated execution state, and matched counterfactual security evaluation.
+
+2. The current repository already contains hierarchical planning/meetings, deterministic behavior routing, human-planner/tool-agent handoff logging, agent registry metadata, per-employee workflow memory, long-horizon replay, and three scenario specifications. It does not yet establish the planned learned controller, full provenance-constrained automaton, matched replay results, or downstream detection gains. The paper must update the Introduction and claims after those experiments are run.
+
+3. For USENIX Security ’27, use the official CFP for current deadlines and formatting. As of the checked CFP, Cycle 2 registration is January 19, 2027, paper submission is January 26, 2027, and artifact submission is January 29, 2027, all AoE. The body limit is 13 pages excluding references and appendices. The submission must include an Open Science Appendix. Include an Ethics Appendix when preparing the full paper.
+
+4. Verify every author list, venue, page range, DOI, and publication status immediately before submission. Entries [12], [17], [18], and [22]–[25] include preprints, OpenReview records, or boundary-case metadata that may change before the 2027 deadline. The statistics in [28]–[29] must retain their report-sample and cumulative-case-library qualifiers. Do not cite a roadmap or an OpenReview page as a final publication when a publisher or proceedings record is available.
+
+5. For anonymous review, remove author identities and non-anonymous artifact links from the paper, supplementary material, and repository metadata. The final artifact should use a non-tracking anonymous archive or the venue’s recommended artifact path.
+
+
+[参考文献核验与投稿说明 · 中文对照]
+
+1. 引言引用 NDSS 2026 已发表的 Chimera 作为前作。本文拟推进的方向包括组织约束下的来源追踪、委托执行状态和成对反事实安全评测。
+
+2. 当前仓库已包含层级规划与会议、确定性行为路由、模拟员工的规划器与工具 Agent 之间的交接日志、Agent 注册表元数据、按员工保存的 workflow memory、长周期回放以及三个场景规范。待完成的工作包括学习型控制器、完整的来源约束技能自动机、成对回放实验和下游检测效果验证。应在取得这些实验结果后更新引言与研究主张。
+
+3. USENIX Security ’27 的截稿日期和格式以官方征稿启事为准。原稿核对时，第二轮的注册、论文提交和研究制品提交截止日期分别为 2027 年 1 月 19 日、1 月 26 日和 1 月 29 日，均按 AoE（地球上最后一个时区）计算。正文最多 13 页，参考文献和附录另计。投稿须包含开放科学附录，准备完整论文时也应纳入伦理附录。
+
+4. 投稿前核对每条文献的作者名单、发表渠道、页码、DOI 和发表状态。[12]、[17]、[18] 和 [22]–[25] 涉及预印本、OpenReview 记录或边界案例，[28]–[29] 的数字分别来自报告样本和累计案例库，其统计口径也应保留。如有出版社或正式论文集记录，以正式记录为准。
+
+5. 准备匿名评审材料时，请移除论文、补充材料和仓库元数据中的作者身份及可识别作者的制品链接。研究制品可通过无跟踪的匿名存档或会议建议的方式提供。

@@ -3,4 +3,5 @@ deepseek-harness-sdk==0.2.2rc2
 json5
 nest-asyncio
 python-dotenv
+PyYAML>=6.0
 tqdm

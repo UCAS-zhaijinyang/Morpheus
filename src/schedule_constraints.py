@@ -5,6 +5,24 @@ from __future__ import annotations
 from typing import Any
 
 
+PLANNING_FIELDS = ("department", "department_head", "planning_protocol")
+
+
+def planning_source(row: dict[str, Any]) -> dict[str, str]:
+    """Copy the recorded organization and planning source of a schedule entry."""
+    return {field: row[field] for field in PLANNING_FIELDS if row.get(field)}
+
+
+def common_planning_source(rows: list[dict[str, Any]]) -> dict[str, str]:
+    """Return values shared by every schedule row, without guessing missing facts."""
+    if not rows:
+        return {}
+    return {
+        field: value for field, value in planning_source(rows[0]).items()
+        if all(row.get(field) == value for row in rows)
+    }
+
+
 def _is_attack(entry: dict[str, Any]) -> bool:
     value = entry.get("Attack", False)
     return value is True or str(value).strip().lower() == "true"

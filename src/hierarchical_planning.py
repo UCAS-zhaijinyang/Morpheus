@@ -1,17 +1,16 @@
 """Small, deterministic helpers for the organizational planning harness.
 
-The baseline planner gives every employee the same meeting.  This
-module keeps the existing profile format, infers departments from the company
-profile, and exposes a two-stage planning contract: department heads first
-agree on constraints, then each department turns those constraints into
-member-level goals.
+Department heads agree on shared objectives and dependencies. Each department
+uses those decisions to assign goals to its members.
 """
 
 from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 import re
+from tempfile import NamedTemporaryFile
 from collections import OrderedDict
 from typing import Any, Iterable
 
@@ -31,6 +30,18 @@ LEADER_HINTS = (
     "经理",
     "总监",
 )
+
+
+def write_planning_json(path: Path, value: Any) -> None:
+    """Publish complete planning artifacts for concurrent schedule readers."""
+    handle = NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent, delete=False)
+    temp = Path(handle.name)
+    try:
+        with handle:
+            json.dump(value, handle, ensure_ascii=False, indent=2)
+        temp.replace(path)
+    finally:
+        temp.unlink(missing_ok=True)
 
 
 def _normalise(value: Any) -> str:
@@ -72,6 +83,9 @@ def load_role_department_map(company_config_path: str) -> dict[str, str]:
 
 
 def _department_for_profile(profile: dict[str, Any], role_map: dict[str, str]) -> str:
+    department = _normalise(profile.get("department"))
+    if department:
+        return department
     member_id = _normalise(profile.get("id"))
     prefix = member_id.split("-", 1)[0]
     if prefix in role_map:

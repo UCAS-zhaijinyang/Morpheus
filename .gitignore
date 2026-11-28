@@ -2,6 +2,8 @@
 .env
 test/
 __pycache__/
+*.py[cod]
+.pytest_cache/
 .venv/
 .dsh/
 tmp/
@@ -17,17 +19,16 @@ experiment_output/
 workspace/
 init_schedule_old/
 !requirements.txt
+!docs/internal_threat_injection_references.txt
+!docs/paper/
+!docs/paper/**
 # output files
 demo/init_schedule/
 demo/generated_members/
 demo/meeting_logs/
 post_process_scripts/*
 
-demo/attack_schedule/
-demo/attack_logs/
-
 output/
-Morpheus/
 execution_logs/
 Final-Output/*
 
@@ -36,4 +37,4 @@ https.py
 
 Final-Output-OpenAI/*
 
-morpheus_scenario_1/
+harness_run/

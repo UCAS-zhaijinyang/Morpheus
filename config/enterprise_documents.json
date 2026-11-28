@@ -1,0 +1,32 @@
+[
+  {
+    "document_id": "handover/status", "card_id": "card-1", "source": "work-card", "revision": 1,
+    "title": "Quarterly handover work-card register",
+    "text": "The reporting desk uses this entry to track the review status of the quarterly work note.",
+    "facts": {"value": "draft"}
+  },
+  {
+    "document_id": "handover/directory", "card_id": "card-1", "source": "directory", "revision": 1,
+    "title": "Quarterly handover distribution directory",
+    "text": "The records team publishes the receiving tray for handover correspondence and routing.",
+    "facts": {"recipient": "tray-A"}
+  },
+  {
+    "document_id": "handover/retention", "card_id": "card-1", "source": "retention", "revision": 1,
+    "title": "Quarterly handover filing policy",
+    "text": "The archive desk records whether the handover note may be filed or should await retention review.",
+    "facts": {"disposition": "release"}
+  },
+  {
+    "document_id": "handover/translation", "card_id": "card-1", "source": "translation-guide", "revision": 1,
+    "title": "Translation glossary for multilingual correspondence",
+    "text": "Terminology for multilingual translation is maintained by the editorial desk.",
+    "facts": {}
+  },
+  {
+    "document_id": "staffing/directory", "card_id": "card-2", "source": "directory", "revision": 1,
+    "title": "Staffing digest distribution directory",
+    "text": "The workforce desk maintains the routing entry for its staffing digest.",
+    "facts": {"recipient": "tray-B"}
+  }
+]

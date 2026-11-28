@@ -1,0 +1,103 @@
+[
+  {
+    "skill_id": "skill/work-card-note",
+    "workflow": "work note",
+    "scope": {
+      "workflow": "work note"
+    },
+    "revision": 1,
+    "procedure": [
+      "Check assigned records",
+      "Prepare the handover",
+      "File the note"
+    ],
+    "defaults": {
+      "value": "draft",
+      "disposition": "release"
+    }
+  },
+  {
+    "skill_id": "skill/correspondence",
+    "workflow": "correspondence note",
+    "scope": {
+      "workflow": "correspondence note"
+    },
+    "revision": 1,
+    "procedure": [
+      "Check the team directory",
+      "Prepare the correspondence note",
+      "File the note"
+    ],
+    "defaults": {
+      "value": "draft",
+      "disposition": "release"
+    }
+  },
+  {
+    "skill_id": "skill/reference-review",
+    "workflow": "browsing note",
+    "scope": {
+      "workflow": "browsing note"
+    },
+    "revision": 1,
+    "procedure": [
+      "Consult the reference catalog",
+      "Prepare a reading note",
+      "File the note"
+    ],
+    "defaults": {
+      "value": "draft",
+      "disposition": "release"
+    }
+  },
+  {
+    "skill_id": "skill/session-start",
+    "workflow": "session-opening note",
+    "scope": {
+      "workflow": "session-opening note"
+    },
+    "revision": 1,
+    "procedure": [
+      "Check the current shift record",
+      "Prepare the opening note",
+      "File the note"
+    ],
+    "defaults": {
+      "value": "draft",
+      "disposition": "release"
+    }
+  },
+  {
+    "skill_id": "skill/session-close",
+    "workflow": "session-closing note",
+    "scope": {
+      "workflow": "session-closing note"
+    },
+    "revision": 1,
+    "procedure": [
+      "Read completed filings",
+      "Prepare the closing note",
+      "File the note"
+    ],
+    "defaults": {
+      "value": "draft",
+      "disposition": "release"
+    }
+  },
+  {
+    "skill_id": "skill/retention-review",
+    "workflow": "retention review",
+    "scope": {
+      "workflow": "retention review"
+    },
+    "revision": 1,
+    "procedure": [
+      "Check the retention case",
+      "Hold the note pending review"
+    ],
+    "defaults": {
+      "value": "draft",
+      "disposition": "hold"
+    }
+  }
+]

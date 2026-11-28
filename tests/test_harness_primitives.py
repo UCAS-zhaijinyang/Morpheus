@@ -10,10 +10,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from behavior_router import BehaviorRouter
 from agent_registry import AgentRegistry, generate_agent_registry
-from deepseek_harness_adapter import run_human_tool_task
+from deepseek_runtime import run_human_tool_task
 import config
 from hierarchical_planning import build_hierarchy, load_role_department_map
-from skill_memory import SkillMemory
 
 
 class HarnessPrimitiveTests(unittest.TestCase):
@@ -46,7 +45,7 @@ class HarnessPrimitiveTests(unittest.TestCase):
             self.assertEqual(personal.agent_type, "personal")
             self.assertEqual(personal.owner_id, "employee-1")
             self.assertEqual(enterprise.agent_type, "enterprise")
-            self.assertNotEqual(personal.memory_scope, enterprise.memory_scope)
+            self.assertNotEqual(personal.authority_scope, enterprise.authority_scope)
 
     def test_agent_registry_scopes_personal_and_employee_agents_per_member(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -97,7 +96,6 @@ class HarnessPrimitiveTests(unittest.TestCase):
                     "capabilities": ["plan", "handoff", "verify"],
                     "allowed_tools": ["calendar", "repository"],
                     "authority_scope": "clinical-project-delegated",
-                    "memory_scope": "project-audited",
                 },
                 {
                     "name": "Hospital Compliance Agent",
@@ -106,7 +104,6 @@ class HarnessPrimitiveTests(unittest.TestCase):
                     "capabilities": ["policy_check", "audit"],
                     "allowed_tools": ["directory", "repository"],
                     "authority_scope": "compliance-review-delegated",
-                    "memory_scope": "compliance-audited",
                 },
             ]
         }
@@ -176,31 +173,6 @@ class HarnessPrimitiveTests(unittest.TestCase):
             )
             self.assertEqual(hierarchy["departments"][0]["leader_id"], "eng-1")
             self.assertEqual(len(hierarchy["departments"]), 2)
-
-    def test_skill_memory_retrieves_and_redacts(self):
-        with tempfile.TemporaryDirectory() as directory:
-            memory = SkillMemory(directory)
-            for _ in range(3):
-                memory.record(
-                    "search the browser and send a mail",
-                    "1. Search the browser\n2. password: secret-value\n3. Verify the result",
-                    member_id="eng-1",
-                )
-            skill = memory.retrieve("send a mail and search the browser")
-            self.assertIsNotNone(skill)
-            self.assertIn("[REDACTED]", " ".join(skill["steps"]))
-
-    def test_skill_memory_waits_for_recurrence_threshold(self):
-        with tempfile.TemporaryDirectory() as directory:
-            memory = SkillMemory(directory, min_recurrence=3)
-            first = memory.record("repeat the queue review", "Inspect and verify", member_id="eng-1")
-            second = memory.record("repeat the queue review", "Inspect and verify", member_id="eng-1")
-            self.assertFalse(first["skill_created"])
-            self.assertFalse(second["skill_created"])
-            self.assertIsNone(memory.retrieve("repeat the queue review"))
-            third = memory.record("repeat the queue review", "Inspect and verify", member_id="eng-1")
-            self.assertTrue(third["skill_created"])
-            self.assertIsNotNone(memory.retrieve("repeat the queue review"))
 
 
 if __name__ == "__main__":

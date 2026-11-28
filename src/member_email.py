@@ -25,7 +25,7 @@ def get_email_members(activity, member_profile, member_id_list):
                                 I will provide you with the member information list, and you will return the selected members for contact.
                                 **Directly return a JSON array of member ids you should contact (do not include yourself). Example: ["da-1", "pc-1"]. Do not reply with anything else!**\n\n"""
         user_prompt = f"""The detailed members' information in the company is as follows: member_ids = {member_id_list}"""
-        llm_output = run_llm(system_prompt, user_prompt)
+        llm_output = run_llm(system_prompt, user_prompt, role="employee")
 
         output = llm_output
 
@@ -58,7 +58,7 @@ def get_email_content(activity, member_profile):
                                 **Directly discuss the matter via email content and do not propose to have a meeting or discussion. You can detail to thoughts in the email content.**\n
                                 **Please only reply with a JSON object with keys \"subject\" and \"content\". Escape newlines in content as \\n. Do not include markdown fences or any other text.** \n\n"""
         user_prompt = f"""The task is: {activity}"""
-        llm_output = run_llm(system_prompt, user_prompt)
+        llm_output = run_llm(system_prompt, user_prompt, role="employee")
         output = llm_output
 
         try:
@@ -83,13 +83,13 @@ def get_email_content(activity, member_profile):
     return email_content
 
 
-def reply_email_content(sender_id, incom_email_data, member_profile):
+def reply_email_content(sender_id, incom_email_data, member_profile, *, profile_dir=None):
     for attempt in range(config.max_attempt):
         email_subject = incom_email_data["subject"]
         email_content = incom_email_data["content"]
 
         # read profile for the sender
-        sender_profile_path = f"{config.profile_output_dir}/{sender_id}.jsonc"
+        sender_profile_path = f"{profile_dir or config.profile_output_dir}/{sender_id}.jsonc"
         with open(sender_profile_path, "r") as f:
             sender_profile = json5.load(f)
 
@@ -103,7 +103,7 @@ def reply_email_content(sender_id, incom_email_data, member_profile):
                                 If you feel like the conversation in this email does not need further reaction, then directly return with \"No\", while if you want to reply, **Directly discuss the matter via email (in detail) and do not propose to have a meeting some time later**.
                                 **You should detail to thoughts in the email content.** then return ONLY a JSON object with keys \"subject\" and \"content\". Escape newlines in content as \\n. Do not include markdown fences or any other text. \n\n"""
         user_prompt = f"The email subject is {email_subject} and the email content is {email_content}"
-        llm_output = run_llm(system_prompt, user_prompt)
+        llm_output = run_llm(system_prompt, user_prompt, role="employee")
         output = llm_output
 
         if isinstance(output, str) and output.strip().startswith("No"):

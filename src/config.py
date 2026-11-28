@@ -18,7 +18,7 @@ base_dir = os.environ.get("MORPHEUS_BASE_DIR", str(repository_root))  ###### 1 #
 env_path = f"{base_dir}/.env"
 
 # scenario name
-scenario_name = "morpheus_scenario_1"
+run_name = "harness_run"
 
 # company_id = "tech_company" ###### 2 #######
 # company_id = "finance_corporation"
@@ -29,27 +29,21 @@ company_id = "medical_institution"
 company_type = "Medical Institution (Small Community Hospital)"  ###### 3 #######
 
 # profile output directory
-profile_output_dir = f"{base_dir}/{scenario_name}/generated_members"
+profile_output_dir = f"{base_dir}/{run_name}/generated_members"
 # Agent identity and authority registry
 agent_registry_path = os.environ.get(
     "MORPHEUS_AGENT_REGISTRY",
-    f"{base_dir}/{scenario_name}/agent_registry.json",
+    f"{base_dir}/{run_name}/agent_registry.json",
 )
-# attack directory
-attack_dir = f"{base_dir}/attacks"
-# attack log directory
-attack_schedule_dir = f"{base_dir}/{scenario_name}/attack_schedule"
 
-company_config_path = f"{base_dir}/{scenario_name}/team/{company_id}.json"
+company_config_path = f"{base_dir}/{run_name}/team/{company_id}.json"
 
 # meeting log directory
-meeting_log_dir = f"{base_dir}/{scenario_name}/meeting_logs"
+meeting_log_dir = f"{base_dir}/{run_name}/meeting_logs"
 # initial schedule directory
-init_schedule_dir = f"{base_dir}/{scenario_name}/init_schedule"
+init_schedule_dir = f"{base_dir}/{run_name}/init_schedule"
 # execution log directory
-execution_log_dir = f"{base_dir}/{scenario_name}/execution_logs"
-# attack log directory
-attack_log_dir = f"{base_dir}/{scenario_name}/attack_logs"
+execution_log_dir = f"{base_dir}/{run_name}/execution_logs"
 
 # goal of the company
 # goal = "The goal of your company is to construct a Third-person shooter game from the beginning." ####### 4 #######
@@ -58,10 +52,6 @@ goal = "The goal of your institution (small community hospital) is to complete e
 
 period = int(os.environ.get("MORPHEUS_PERIOD_WEEKS", "1"))
 employee_number = int(os.environ.get("MORPHEUS_EMPLOYEE_NUMBER", "5"))
-skill_min_recurrence = max(
-    1,
-    int(os.environ.get("MORPHEUS_SKILL_MIN_RECURRENCE", "3")),
-)
 daily_schedule_target_entries = max(
     1,
     int(os.environ.get("MORPHEUS_DAILY_SCHEDULE_TARGET", "3")),
@@ -96,23 +86,18 @@ work_days = tuple(
     if day.strip()
 )
 
-# Long-horizon scale execution. The regular daily entry point keeps its
-# event-level behavior, while scale_simulation.py batches one employee's
-# complete horizon into one auditable human-planner/tool-agent hand-off.
+# Number of employee–Agent schedule files handled concurrently in horizon runs.
 scale_worker_count = int(os.environ.get("MORPHEUS_SCALE_WORKERS", "8"))
 scale_isolate_harness_home = os.environ.get(
     "MORPHEUS_SCALE_ISOLATE_HARNESS_HOME", "1"
 ).lower() in {"1", "true", "yes"}
 
-# research ablation switch: set False to recover the original all-hands planner
-hierarchical_planning = True
-
-# Disable model-operated tools. This does not disable model API requests.
+# Select the minimal profile for general prompts on the official provider.
+# Employee work and simulated Agent decisions use a dedicated text-only profile.
 offline_mode = True
 
 ### DeepSeek Harness
-# The Harness owns model sessions, tool execution, permission boundaries, and
-# durable session events for both meetings and employee task execution.
+# Harness runs the models. The work-card simulator executes its business tools in memory.
 deepseek_harness_provider = "deepseek-official"
 deepseek_harness_profile = "sdk"
 deepseek_harness_model = "deepseek-v4-flash"

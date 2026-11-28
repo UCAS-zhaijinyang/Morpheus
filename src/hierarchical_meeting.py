@@ -6,16 +6,17 @@ import csv
 import json
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 from typing import Any
 
 import config
-from deepseek_harness_adapter import run_human_tool_task
+from deepseek_runtime import run_human_tool_task
 from hierarchical_planning import (
     build_hierarchy,
     department_task_prompt,
-    hierarchy_text,
     load_role_department_map,
     manager_task_prompt,
+    write_planning_json,
 )
 
 
@@ -42,7 +43,7 @@ def _participant_context(member_ids: list[str], profile_by_id: dict[str, dict[st
                     f"id={profile.get('id', member_id)}",
                     f"name={profile.get('name', '')}",
                     f"role={profile.get('role', '')}",
-                    f"authority={profile.get('description', '')}",
+                    f"responsibilities={profile.get('description', '')}",
                 ]
             )
         )
@@ -158,31 +159,5 @@ def run_hierarchical_weekly_plan(
         writer.writerow(["head_council", "all_departments", council_result])
         for department, result in department_results.items():
             writer.writerow(["department_meeting", department, result])
-    with open(os.path.join(log_dir, "meeting_result.log"), "w", encoding="utf-8") as handle:
-        json.dump(bundle, handle, indent=2, ensure_ascii=False)
+    write_planning_json(Path(log_dir) / "meeting_result.log", bundle)
     return bundle
-
-
-def run_flat_weekly_plan(member_dir: str):
-    """Run the original all-hands plan as a Harness-controlled ablation."""
-
-    profiles, _ = _load_profiles(member_dir)
-    hierarchy = build_hierarchy(profiles, load_role_department_map(config.company_config_path))
-    member_ids = [profile["id"] for profile in profiles]
-    prompt = f"""Create weekly goals for every employee in this organization.
-Return a clear assignment for every employee and every requested week.
-Organization goal: {config.goal}
-Period: {config.period} weeks
-Organization structure:
-{hierarchy_text(hierarchy)}
-"""
-    result = _run_meeting_stage(
-        prompt,
-        participants="\n".join(f"employee_id={member_id}" for member_id in member_ids),
-        log_dir=config.meeting_log_dir,
-        stage_name="all_hands_ablation",
-    )
-    os.makedirs(config.meeting_log_dir, exist_ok=True)
-    with open(os.path.join(config.meeting_log_dir, "meeting_result.log"), "w", encoding="utf-8") as handle:
-        handle.write(result)
-    return result

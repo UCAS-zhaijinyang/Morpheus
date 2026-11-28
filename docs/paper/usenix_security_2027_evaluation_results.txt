@@ -1,0 +1,149 @@
+6 EVALUATION RESULTS
+
+This section is a result-writing template for the protocol in `usenix_security_2027_evaluation.txt`. Numeric cells remain placeholders until the frozen generation and detector runs finish. Every reported number must include valid-run count, mean, standard deviation, and a 95% bootstrap confidence interval where applicable.
+
+Data preparation and generation branches run in parallel inside the first stage. All four realism indicators are completed and frozen at the second-stage barrier before ITD begins. ITD branches then run in parallel for CERT and the three Morpheus scenarios. ChimeraLog, TWOS, and UNM contribute realism results only.
+
+6.1 Dataset construction and integrity
+
+Morpheus-Harness uses deepseek-v4.1-flash across three organization scenarios. Each scenario contains 100 employees, 50 working days, 5,000 employee-days, 4,000 benign employee-days, and 1,000 insider-threat employee-days. The total Morpheus release contains 15,000 employee-days. One shared Enterprise Agent and one Personal Agent per employee are configured for every scenario.
+
+ChimeraLog contains 5,000 records generated with deepseek-v4.1-flash in the internet-company scenario. CERT, TWOS, and UNM each contribute a fixed 5,000-record slice. TWOS, UNM, and ChimeraLog are used for realism. CERT is included in both realism and ITD.
+
+Table 1. Dataset construction and evaluation use.
+
+| Dataset | Records | Sample unit | Benign | Threat | Realism | ITD |
+|---|---:|---|---:|---:|---|---|
+| CERT-5K | 5,000 | user-day after canonical aggregation | [fill] | [fill] | Yes | External baseline |
+| TWOS-5K | 5,000 | participant/session-day | [fill] | [fill] | Yes | No |
+| UNM-5K | 5,000 | user command/session | [fill] | [fill] | Yes | No |
+| ChimeraLog-5K | 5,000 | employee-day or closest published unit | [fill] | [fill] | Yes | No |
+| Morpheus S1 internet | 5,000 | employee-day | 4,000 | 1,000 | Yes | Yes |
+| Morpheus S2 financial | 5,000 | employee-day | 4,000 | 1,000 | Yes | Yes |
+| Morpheus S3 AI | 5,000 | employee-day | 4,000 | 1,000 | Yes | Yes |
+
+Table 2. Data-quality checks.
+
+| Dataset/unit | Parse success | Required-field completeness | Timestamp validity | Modality completeness | Label consistency |
+|---|---:|---:|---:|---:|---:|
+| CERT-5K | [fill] | [fill] | [fill] | [fill] | [fill] |
+| TWOS-5K | [fill] | [fill] | [fill] | [fill] | [fill] |
+| UNM-5K | [fill] | [fill] | [fill] | [fill] | [fill] |
+| ChimeraLog-5K | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S1 internet | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S2 financial | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S3 AI | [fill] | [fill] | [fill] | [fill] | [fill] |
+
+6.2 Results for dataset realism
+
+Table 3. Four realism indicators.
+
+| Dataset | 24-hour temporal distribution | Same-modality behavior diversity | Cross-modality event correlation | Behavior complexity |
+|---|---:|---:|---:|---:|
+| CERT-5K | [fill] | [fill] | [fill/N/A] | [fill] |
+| TWOS-5K | [fill] | [fill] | [fill/N/A] | [fill] |
+| UNM-5K | [fill] | [fill] | [fill/N/A] | [fill] |
+| ChimeraLog-5K | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S1 internet | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S2 financial | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S3 AI | [fill] | [fill] | [fill] | [fill] |
+
+Figure 1 should show normalized 24-hour activity histograms. Figure 2 should show per-user behavioral entropy by available log modality. Figure 3 should show cross-modality event correlation matrices. Figure 4 should show normalized compression complexity distributions.
+
+Result paragraph template:
+
+“CERT, TWOS, and UNM established the traditional realism reference range. ChimeraLog was generated and then compared with that range. Morpheus produced [higher/lower/comparable] temporal distributions, same-modality behavioral diversity, cross-modality event correlation, and sequence complexity. Missing modalities were reported as N/A and were not imputed.”
+
+Table 4. Four realism indicators across Morpheus scenarios.
+
+| Scenario | 24-hour temporal distribution | Same-modality behavior diversity | Cross-modality event correlation | Behavior complexity | 95% bootstrap CI |
+|---|---:|---:|---:|---:|---|
+| S1 internet company | [fill] | [fill] | [fill] | [fill] | [fill] |
+| S2 financial institution | [fill] | [fill] | [fill] | [fill] | [fill] |
+| S3 AI company | [fill] | [fill] | [fill] | [fill] | [fill] |
+
+6.3 Results for insider-threat detection
+
+6.3.1 In-domain detection
+
+Table 5. In-domain ITD results using CERT and Morpheus.
+
+| Dataset | Method | View | Accuracy | Precision | Recall | F1 | ROC-AUC | PR-AUC |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+| CERT-5K | RBF-SVM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| CERT-5K | Adapted MOLE-Sequential | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| CERT-5K | Adapted MOLE-RLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S1 internet | RBF-SVM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S1 internet | Adapted MOLE-Sequential | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S1 internet | Adapted MOLE-RLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S2 financial | RBF-SVM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S2 financial | Adapted MOLE-Sequential | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S2 financial | Adapted MOLE-RLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S3 AI | RBF-SVM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S3 AI | Adapted MOLE-Sequential | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Morpheus S3 AI | Adapted MOLE-RLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+
+Figure 5 should show PR curves for CERT and the three Morpheus scenarios. Figure 6 should show F1 and PR-AUC with mean and standard deviation over the five seeds.
+
+RBF-SVM, Adapted MOLE-Sequential, and Adapted MOLE-RLM must be reported separately. RBF-SVM is trained on the corresponding supervised training split. Adapted MOLE-Sequential and Adapted MOLE-RLM both use the fixed LoRA adaptation protocol on the corresponding training split.
+
+6.3.2 Morpheus scenario comparison
+
+Table 6. Scenario-level ITD results relative to the CERT baseline.
+
+| Method | Dataset | Accuracy | Precision | Recall | F1 | ROC-AUC | PR-AUC |
+|---|---|---:|---:|---:|---:|---:|---:|
+| RBF-SVM | CERT-5K | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| RBF-SVM | Morpheus S1 internet | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| RBF-SVM | Morpheus S2 financial | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| RBF-SVM | Morpheus S3 AI | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-Sequential | CERT-5K | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-Sequential | Morpheus S1 internet | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-Sequential | Morpheus S2 financial | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-Sequential | Morpheus S3 AI | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-RLM | CERT-5K | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-RLM | Morpheus S1 internet | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-RLM | Morpheus S2 financial | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-RLM | Morpheus S3 AI | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+
+Figure 7 should show a CERT-versus-Morpheus scenario comparison for F1 and PR-AUC. No ChimeraLog, TWOS, or UNM ITD score is included.
+
+6.3.3 Adaptation and Agent-aware increment
+
+Table 7. Agent-aware views on identical Morpheus test employee-days.
+
+| Method | View | Accuracy | Precision | Recall | F1 | ROC-AUC | PR-AUC |
+|---|---|---:|---:|---:|---:|---:|---:|
+| RBF-SVM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-Sequential | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-Sequential | + Agent identity | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-Sequential | + delegation/authorization | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-Sequential | + Skill/Memory provenance | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-Sequential | Full Agent-aware | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-RLM | Common | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-RLM | + Agent identity | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-RLM | + delegation/authorization | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-RLM | + Skill/Memory provenance | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Adapted MOLE-RLM | Full Agent-aware | [fill] | [fill] | [fill] | [fill] | [fill] | [fill] |
+
+Figure 8 should show paired slopes from Common to Full Agent-aware for Adapted MOLE-Sequential and Adapted MOLE-RLM, with RBF-SVM as the conventional behavior-only reference.
+
+
+6.4 Error analysis and conclusion
+
+Confusion matrices and representative traces should explain false positives and false negatives. Categories include authorized cross-department collaboration, ordinary Agent reuse, missed authorization violation, missed Skill/Memory contamination, and incomplete audit evidence.
+
+Table 8. Error counts at the selected detector threshold.
+
+| Error category | RBF-SVM | Adapted MOLE-Sequential | Adapted MOLE-RLM | Common view | Agent-aware view |
+|---|---:|---:|---:|---:|---:|
+| Authorized collaboration flagged | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Threat missed | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Threat family confused | [fill] | [fill] | [fill] | [fill] | [fill] |
+| Agent-aware evidence missing | [fill] | [fill] | [fill] | [fill] | [fill] |
+
+Final result paragraph template:
+
+“The realism evaluation established [result] for CERT, TWOS, UNM, ChimeraLog, and the three Morpheus scenarios across the four fixed indicators.  On ITD, RBF-SVM, Adapted MOLE-Sequential, and Adapted MOLE-RLM achieved [classical metric results] on CERT and the three Morpheus scenarios. The Agent-aware views and Morpheus-specific LoRA adaptation changed F1 and PR-AUC by [values] on the paired Morpheus test employee-days. These results support [precise supported claim] and leave [limitation] unresolved.”
+
+The paper must report failed integrity checks, excluded records, dataset-specific modality differences, and detector-version differences. It must not treat TWOS, UNM, or ChimeraLog as ITD test results in the main experiment.

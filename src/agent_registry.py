@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+from trajectory_schema import append_trajectory_event
+
 
 _AUDIT_LOCK = threading.Lock()
 EMPLOYEE_AGENT_TYPE = "employee"
@@ -41,7 +43,6 @@ _ENTERPRISE_AGENT_SPEC = {
     ),
     "allowed_tools": ("email", "calendar", "repository", "file", "search"),
     "authority_scope": "task-scoped-delegated",
-    "memory_scope": "organization-audited",
 }
 
 
@@ -59,7 +60,6 @@ class AgentProfile:
     capabilities: tuple[str, ...]
     allowed_tools: tuple[str, ...]
     authority_scope: str
-    memory_scope: str
     human_approval_required: bool = True
     version: str = "1.0"
 
@@ -87,7 +87,6 @@ def _profile_from_dict(raw: dict[str, Any]) -> AgentProfile:
         capabilities=_tuple_values(raw.get("capabilities")),
         allowed_tools=_tuple_values(raw.get("allowed_tools")),
         authority_scope=str(raw.get("authority_scope", "task-scoped-delegated")),
-        memory_scope=str(raw.get("memory_scope", "task-scoped")),
         human_approval_required=bool(raw.get("human_approval_required", True)),
         version=str(raw.get("version", "1.0")),
     )
@@ -112,7 +111,6 @@ def default_agent_profiles(member_ids: Iterable[str] = ()) -> list[AgentProfile]
                     capabilities=("schedule_read", "intent_route", "direct_behavior", "delegate"),
                     allowed_tools=("calendar", "email", "file", "search"),
                     authority_scope="employee-principal-scoped",
-                    memory_scope="employee-private",
                     human_approval_required=False,
                 ),
                 AgentProfile(
@@ -126,7 +124,6 @@ def default_agent_profiles(member_ids: Iterable[str] = ()) -> list[AgentProfile]
                     capabilities=("browse", "summarize", "personal_search"),
                     allowed_tools=("search",),
                     authority_scope="employee-principal-scoped",
-                    memory_scope="principal-private",
                     human_approval_required=False,
                 ),
             ]
@@ -144,7 +141,6 @@ def default_agent_profiles(member_ids: Iterable[str] = ()) -> list[AgentProfile]
             capabilities=tuple(spec["capabilities"]),
             allowed_tools=tuple(spec["allowed_tools"]),
             authority_scope=spec["authority_scope"],
-            memory_scope=spec["memory_scope"],
             human_approval_required=True,
         )
     )
@@ -197,7 +193,6 @@ def generate_agent_registry(
             "capabilities": ["plan", "handoff", "tool_execute", "verify"],
             "allowed_tools": ["calendar", "repository", "file"],
             "authority_scope": "task-scoped-delegated",
-            "memory_scope": "organization-audited",
             "human_approval_required": True,
             "version": "1.0",
         },
@@ -209,7 +204,7 @@ Always output valid JSON and nothing else. Do not wrap the output in markdown.
 
 The JSON stores non-human Agent profiles for a simulated enterprise. Generate
 exactly one enterprise Agent profile. Its responsibilities, capabilities,
-allowed tools, authority scope, and memory scope must reflect the company
+allowed tools and authority scope must reflect the company
 domain, organization goal, business processes, and role responsibilities.
 The Agent must cover the planning, communication, data, security, knowledge,
 or other functions required by this organization.
@@ -253,7 +248,6 @@ business processes above and make the functions materially different."""
         "capabilities",
         "allowed_tools",
         "authority_scope",
-        "memory_scope",
         "version",
     )
     for index, fallback in enumerate(defaults):
@@ -465,6 +459,7 @@ class AgentRegistry:
         with _AUDIT_LOCK:
             with path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+        append_trajectory_event(log_dir, record)
 
 
 def agent_audit_context(
@@ -517,3 +512,4 @@ def append_agent_audit_event(log_dir: str | Path, event: dict[str, Any]) -> None
     with _AUDIT_LOCK:
         with path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+    append_trajectory_event(log_dir, record)
